@@ -1,54 +1,36 @@
-import { BellRing, Check } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { ModeToggle } from "@/components/node-toggle";
-
-type CardProps = React.ComponentProps<typeof Card>;
+import CategoryCard from "@/components/category-card";
+import CategoryTotalCard from "@/components/category-total-card";
+import { categories } from "@/app/data.js";
 
 export default function Home() {
   return (
-    <div>
-      <Switch />
-      <Button>Click Here</Button>
-      <ModeToggle />
-      <Card className={cn("w-[380px]")}>
-        <CardHeader>
-          <CardTitle>Notifications</CardTitle>
-          <CardDescription>You have 3 unread messages.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className=" flex items-center space-x-4 rounded-md border p-4">
-            <BellRing />
-            <div className="flex-1 space-y-1">
-              <p className="text-sm font-medium leading-none">
-                Push Notifications
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Send notifications to device.
-              </p>
-            </div>
-            <Switch />
-          </div>
-          <div>
-            
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button className="w-full">
-            <Check /> Mark all as read
-          </Button>
-        </CardFooter>
-      </Card>
+    <div className="flex">
+      <div className="border-r-2 p-5">
+        <h1 className="py-2">test</h1>
+        <h1 className="py-2">test</h1>
+        <h1 className="py-2">test</h1>
+      </div>
+      <div className="p-5">
+        <h1 className="text-5xl font-light">Categories</h1>
+        <div className="my-5">
+          <CategoryTotalCard
+            name={`Categories`}
+            total={categories.length}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          {categories.map((category) => {
+            // Add return statement or use an implicit return with parentheses
+            return (
+              <CategoryCard
+                key={category.category_id}
+                name={category.category_name}
+                link={category.category_image_link}
+              />
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

@@ -48,7 +48,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${roboto.className}`}>
+      <body className="font-roboto text-foreground">
         <main className="max-w-[1920px] mx-auto border-x-0 screen-border">
           <ThemeProvider
             attribute="class"
