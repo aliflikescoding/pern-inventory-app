@@ -73,7 +73,7 @@ const Items = () => {
     <div className="flex">
       <div className="p-5">
         <h1 className="text-5xl font-light">All items</h1>
-        <div className="mb-[55px] h-[350px]">
+        <div className="h-[450px] my-5">
           <BarAllItemsOne data={barData1} />
         </div>
         <Table className="max-w-full">
@@ -119,7 +119,7 @@ const Items = () => {
                   <p className="">Item Price</p>
                   <p>
                     <span className="text-gray-400 text-lg">$</span>{" "}
-                    {item.item_price}
+                    {item.item_price} USD
                   </p>
                 </TableCell>
                 <TableCell>

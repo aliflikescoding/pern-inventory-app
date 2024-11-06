@@ -35,32 +35,11 @@ type MixedArrayProps = {
   data: Item[];  // Expecting an array of objects with item_name and item_stock
 };
 
-// Updated options with white text color for title, axes, and legend
 const options = {
   plugins: {
     title: {
-      display: false,
-    },
-    tooltip: {
-      titleColor: 'white', // Tooltip title color
-      bodyColor: 'white', // Tooltip body color
-    },
-    legend: {
-      labels: {
-        color: 'white', // Set legend text color to white
-      },
-    },
-  },
-  scales: {
-    x: {
-      ticks: {
-        color: 'white', // Set x-axis tick color to white
-      },
-    },
-    y: {
-      ticks: {
-        color: 'white', // Set y-axis tick color to white
-      },
+      display: true,
+      text: "Stock Table"
     },
   },
   responsive: true,
@@ -71,10 +50,9 @@ const options = {
 
 const BarAllItemsOne: React.FC<MixedArrayProps> = ({ data }) => {
   return (
-    <Card className="p-5">
-      <h1 className="text-4xl font-light mb-3">Stock Of Each Item</h1>
+    <Card className="p-5 w-full h-full">
       <Bar
-        className="max-h-[300px]"
+        className="mx-auto w-full h-full"
         options={options}
         data={{
           labels: data.map(item => item.item_name), // 'item_name' for the chart labels (x-axis)
