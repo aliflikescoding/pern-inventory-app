@@ -73,7 +73,7 @@ const Items = () => {
     <div className="flex">
       <div className="p-5">
         <h1 className="text-5xl font-light">All items</h1>
-        <div className="h-[450px] my-5">
+        <div className="h-[350px] my-5">
           <BarAllItemsOne data={barData1} />
         </div>
         <Table className="max-w-full">
