@@ -4,9 +4,7 @@ import React from "react";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -17,6 +15,7 @@ import Link from "next/link";
 import BarAllItemsOne from "@/components/bar-all-items-one";
 import AllItemsDonutChart from "@/components/all-items-donut-chart";
 import AvailDonutChart from "@/components/avail-donut-chart";
+import BarItemPrice from "@/components/bar-item-price";
 
 interface Item {
   item_id: number;
@@ -91,6 +90,13 @@ const processDataBar1 = (items: Item[]) => {
   }));
 };
 
+const processDataBar2 = (items: Item[]) => {
+  return items.map((item) => ({
+    item_name: item.item_name,
+    item_price: item.item_price,
+  }));
+};
+
 const getAvailabilitySummary = (items: typeof allItems) => {
   const summary = items.reduce(
     (acc, item) => {
@@ -111,12 +117,14 @@ const Items = () => {
   const dataPie = processDataPie(allItems);
   const barData1 = processDataBar1(allItems);
   const dataPieAvail = getAvailabilitySummary(allItems);
+  const barData2 = processDataBar2(allItems);
 
   return (
     <div className="flex">
       <div className="p-5">
         <h1 className="text-5xl font-light">All items</h1>
         <div className="flex justify-around my-3">
+          <BarItemPrice data={barData2} />
           <AvailDonutChart
             totalAvailable={dataPieAvail.totalAvailable}
             totalNotAvailable={dataPieAvail.totalNotAvailable}
