@@ -11,6 +11,7 @@ import {
 import { allItems } from "@/app/data.js";
 import { PenLine, Box, Layers3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 import Link from "next/link";
 import BarAllItemsOne from "@/components/bar-all-items-one";
 import AllItemsDonutChart from "@/components/all-items-donut-chart";
@@ -142,10 +143,12 @@ const Items = () => {
             {allItems.map((item) => (
               <TableRow key={item.item_id}>
                 <TableCell className="mx-2">
-                  <img
+                  <Image
                     src={item.item_image_link}
                     alt={item.item_name}
-                    className="w-16 h-16 object-cover rounded-md"
+                    width={64}
+                    height={64}
+                    className="object-cover rounded-md"
                   />
                 </TableCell>
                 <TableCell>
