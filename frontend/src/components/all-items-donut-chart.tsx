@@ -40,8 +40,8 @@ const AllItemsDonutChart: React.FC<AllItemsDonutProp> = ({ data }) => {
 
   return (
     <Card className="w-[350px]">
-      <div className="w-full bg-card-foreground border-b-[1px] text-foreground px-3 py-1 capitalize">
-        <h1 className="text-md font-semibold">total items in each category</h1>
+      <div className="w-full border-b-[1px] text-foreground px-3 py-1 capitalize">
+        <h1 className="text-md font-medium">total items in each category</h1>
       </div>
       <div className="p-3">
         <Doughnut data={chartData}/>

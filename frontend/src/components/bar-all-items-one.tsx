@@ -46,8 +46,8 @@ const BarAllItemsOne: React.FC<MixedArrayProps> = ({ data }) => {
 
   return (
     <Card className="">
-      <div className="w-full bg-card-foreground border-b-[1px] text-foreground px-3 py-1 capitalize">
-        <h1 className="text-md font-semibold">Items Stock</h1>
+      <div className="w-full border-b-[1px] text-foreground px-3 py-1 capitalize">
+        <h1 className="text-md font-medium">Items Stock</h1>
       </div>
       <div className="h-[350px] p-2">
         <Bar

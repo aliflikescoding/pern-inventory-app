@@ -39,8 +39,8 @@ const AvailDonutChart: React.FC<DataProp> = ({ totalAvailable, totalNotAvailable
 
   return (
     <Card className="w-[350px]">
-      <div className="w-full bg-card-foreground border-b-[1px] text-foreground px-3 py-1 capitalize">
-        <h1 className="text-md font-semibold">Item Availability</h1>
+      <div className="w-full border-b-[1px] text-foreground px-3 py-1 capitalize">
+        <h1 className="text-md font-medium">Item Availability</h1>
       </div>
       <div className="p-3">
         <Doughnut data={chartData}/>
