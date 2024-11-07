@@ -33,20 +33,20 @@ type MixedArrayProps = {
   data: Item[];
 };
 
-const options = {
-  plugins: {
-    title: {
-      display: true,
-      text: "Stock Table"
-    },
-  },
-  responsive: true,
-  interaction: {
-    intersect: false,
-  },
-};
-
 const BarAllItemsOne: React.FC<MixedArrayProps> = ({ data }) => {
+  const options = {
+    plugins: {
+      title: {
+        display: true,
+        text: "Items Stock"
+      },
+    },
+    responsive: true,
+    interaction: {
+      intersect: false,
+    },
+  };
+
   return (
     <Card className="p-5 w-full h-full max-w-full max-h-full">
       <Bar
