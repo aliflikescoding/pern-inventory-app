@@ -1,5 +1,6 @@
 import React from 'react'
-import { ModeToggle } from "@/components/node-toggle";
+import { ModeToggle } from "@/components/mode-toggle";
+import { AddButton } from './add-button';
 
 const NavBar = () => {
   return (
@@ -8,7 +9,8 @@ const NavBar = () => {
         <h1 className='uppercase text-5xl font-tiltNeon text-foreground'>IN<span className='text-primary'>.V</span></h1>
       </div>
       <div>
-        <ModeToggle />
+        <AddButton />
+        <span className='ml-2'><ModeToggle/></span>
       </div>
     </div>
   )
