@@ -1,3 +1,5 @@
+"use client"
+
 import React from "react";
 import {
   Table,
@@ -13,6 +15,7 @@ import { PenLine, Box, Layers3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import BarAllItemsOne from "@/components/bar-all-items-one";
+import AllItemsDonutChart from "@/components/all-items-donut-chart";
 
 interface Item {
   item_id: number;
@@ -54,8 +57,30 @@ const processDataPie = (items: Item[]): ProcessedItem[] => {
     }
   });
 
+  // Bright colors object
+  const colors = {
+    brightColors: [
+      "#1E90FF", // Dodger Blue
+      "#0000FF", // Blue
+      "#4682B4", // Steel Blue
+      "#6A5ACD", // Slate Blue
+      "#8A2BE2", // Blue Violet
+      "#FF00FF", // Magenta
+      "#8B008B", // Dark Magenta
+      "#DDA0DD", // Plum
+      "#FF1493", // Deep Pink
+      "#FF69B4", // Hot Pink
+    ],
+  };
+
   // Convert the aggregated object into an array
-  return Object.values(categoryCount);
+  const result = Object.values(categoryCount);
+
+  // Return both the processed data and the brightColors as a new property in the object array
+  return result.map((item, index) => ({
+    ...item,
+    color: colors.brightColors[index % colors.brightColors.length], // Assign a color based on the index
+  }));
 };
 
 const processDataBar1 = (items: Item[]) => {
@@ -73,7 +98,11 @@ const Items = () => {
     <div className="flex">
       <div className="p-5">
         <h1 className="text-5xl font-light">All items</h1>
-        <div className="h-[350px] my-5">
+        <div>
+          
+        </div>
+        <div className="flex justify-around my-3">
+          <AllItemsDonutChart data={dataPie} />
           <BarAllItemsOne data={barData1} />
         </div>
         <Table className="max-w-full">
