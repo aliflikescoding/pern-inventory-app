@@ -108,7 +108,7 @@ export const allItems = [
     item_desc: "High quality black sockss that is cool an comfortable with nice original polyester and wool high end quality premium fabric",
     item_price: 3,
     item_stock: 20,
-    item_status: true,
+    item_status: false,
     item_image_link: "https://i.imgur.com/RsD04oM.jpeg",
     category_id: 1,
     category_name: "socks"
@@ -119,7 +119,7 @@ export const allItems = [
     item_desc: "High quality navy socks that is cool an comfortable with nice original polyester and wool high end quality premium fabric",
     item_price: 3,
     item_stock: 25,
-    item_status: true,
+    item_status: false,
     item_image_link: "https://i.imgur.com/N5SvBCG.jpeg",
     category_id: 1,
     category_name: "socks"

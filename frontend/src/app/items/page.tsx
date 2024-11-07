@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React from "react";
 import {
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import BarAllItemsOne from "@/components/bar-all-items-one";
 import AllItemsDonutChart from "@/components/all-items-donut-chart";
+import AvailDonutChart from "@/components/avail-donut-chart";
 
 interface Item {
   item_id: number;
@@ -90,16 +91,36 @@ const processDataBar1 = (items: Item[]) => {
   }));
 };
 
+const getAvailabilitySummary = (items: typeof allItems) => {
+  const summary = items.reduce(
+    (acc, item) => {
+      if (item.item_status) {
+        acc.totalAvailable += 1;
+      } else {
+        acc.totalNotAvailable += 1;
+      }
+      return acc;
+    },
+    { totalAvailable: 0, totalNotAvailable: 0 }
+  );
+
+  return summary;
+};
+
 const Items = () => {
   const dataPie = processDataPie(allItems);
   const barData1 = processDataBar1(allItems);
+  const dataPieAvail = getAvailabilitySummary(allItems);
 
   return (
     <div className="flex">
       <div className="p-5">
         <h1 className="text-5xl font-light">All items</h1>
-        <div>
-          
+        <div className="flex justify-around my-3">
+          <AvailDonutChart
+            totalAvailable={dataPieAvail.totalAvailable}
+            totalNotAvailable={dataPieAvail.totalNotAvailable}
+          />
         </div>
         <div className="flex justify-around my-3">
           <AllItemsDonutChart data={dataPie} />
