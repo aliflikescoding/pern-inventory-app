@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { allItems } from "@/app/data.js";
-import { PenLine, Box, Layers3 } from "lucide-react";
+import { PenLine, Box, Layers3, Trash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
@@ -154,7 +154,7 @@ const Items = () => {
                 <TableCell>
                   <div className="border-[1px] h-[25px]"></div>
                 </TableCell>
-                <TableCell className="mx-2 capitalize">
+                <TableCell className="mb-2 capitalize">
                   {item.item_name}
                 </TableCell>
                 <TableCell>
@@ -200,16 +200,26 @@ const Items = () => {
                   {item.item_status ? (
                     <Badge>Available</Badge>
                   ) : (
-                    <Badge variant="destructive">Not Available</Badge>
+                    <Badge variant="destructive" className="whitespace-nowrap">
+                      Not Available
+                    </Badge>
                   )}
                 </TableCell>
                 <TableCell>
                   <div className="border-[1px] h-[25px]"></div>
                 </TableCell>
                 <TableCell>
-                  <Link href="" className="hover:text-primary">
-                    <PenLine className="transition-transform transform hover:scale-95" />
-                  </Link>
+                  <div className="flex justify-center items-center">
+                    <Link href="" className="hover:text-primary">
+                      <PenLine className="transition-transform transform hover:scale-95" />
+                    </Link>
+                    <Link
+                      href=""
+                      className="hover:text-primary text-destructive"
+                    >
+                      <Trash className="transition-transform transform hover:scale-95 ml-2" />
+                    </Link>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
