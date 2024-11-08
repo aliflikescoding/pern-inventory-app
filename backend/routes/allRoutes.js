@@ -1,6 +1,16 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
-import { postACategory, getAllCategory, getACategory, updateACategory, deleteACategory } from '../controllers/allControllers.js';
+import {
+  postACategory,
+  getAllCategory,
+  getACategory,
+  updateACategory,
+  deleteACategory,
+  createItem,
+  getAllItem,
+  getAnItem,
+  updateAnItem
+} from "../controllers/allControllers.js";
 
 // Create Category
 router.post("/category", postACategory);
@@ -16,5 +26,17 @@ router.put("/category/:id", updateACategory);
 
 // Delete a category
 router.delete("/category/:id", deleteACategory);
+
+// Create item
+router.post("/item", createItem);
+
+// Get all items
+router.get("/item", getAllItem);
+
+// Get a category
+router.get("/item/:id", getAnItem);
+
+// Update a category
+router.put("/item/:id", updateAnItem);
 
 export default router;

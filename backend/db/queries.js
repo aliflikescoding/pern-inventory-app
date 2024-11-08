@@ -40,3 +40,59 @@ export async function deleteIdCategory(category_id) {
   );
   return result;
 }
+
+export async function insertIntoItem(
+  item_name,
+  item_desc,
+  item_price,
+  item_stock,
+  item_status,
+  item_image_link,
+  category_id
+) {
+  const result = await pool.query(
+    `INSERT INTO item (item_name, item_desc, item_price, item_stock, item_status, item_image_link, category_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    [item_name, item_desc, item_price, item_stock, item_status, item_image_link, category_id]
+  );
+  return result;
+}
+
+export async function getAllItems() {
+  const result = await pool.query("SELECT * FROM item");
+  return result;
+}
+
+export async function getIdItem(item_id) {
+  const result = await pool.query(
+    "SELECT * FROM item WHERE item_id = ($1)",
+    [item_id]
+  );
+  return result;
+}
+
+export async function updateIdItem(
+  item_id,
+  item_name,
+  item_desc,
+  item_price,
+  item_stock,
+  item_status,
+  item_image_link,
+  category_id
+) {
+  const result = await pool.query(
+    `UPDATE item 
+     SET item_name = $1, 
+         item_desc = $2, 
+         item_price = $3, 
+         item_stock = $4, 
+         item_status = $5, 
+         item_image_link = $6, 
+         category_id = $7
+     WHERE item_id = $8
+     RETURNING *`,
+    [item_name, item_desc, item_price, item_stock, item_status, item_image_link, category_id, item_id]
+  );
+  return result;
+}
