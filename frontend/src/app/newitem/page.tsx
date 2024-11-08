@@ -102,7 +102,7 @@ const NewItem = () => {
                   id="price"
                   inputMode="numeric"
                   step="any"
-                  className="no-arrows h-10 w-10 flex text-center"
+                  className="no-arrows h-10 w-12 flex text-center"
                   value={price}
                   onChange={(e) => setPrice(parseInt(e.target.value))}
                 />
@@ -134,7 +134,7 @@ const NewItem = () => {
                   id="stock"
                   inputMode="numeric"
                   step="any"
-                  className="no-arrows h-10 w-10 flex text-center"
+                  className="no-arrows h-10 w-12 flex text-center"
                   value={stock}
                   onChange={(e) => setStock(parseInt(e.target.value))}
                 />
