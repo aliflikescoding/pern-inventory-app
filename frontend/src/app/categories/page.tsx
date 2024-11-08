@@ -4,12 +4,7 @@ import { categories } from "@/app/data.js";
 
 export default function Categories() {
   return (
-    <div className="flex">
-      <div className="border-r-2 p-5">
-        <h1 className="py-2">test</h1>
-        <h1 className="py-2">test</h1>
-        <h1 className="py-2">test</h1>
-      </div>
+    <div>
       <div className="p-5">
         <h1 className="text-5xl font-light">Categories</h1>
         <div className="my-5">
