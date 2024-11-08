@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { categories } from "../data";
 
 const NewItem = () => {
   const [price, setPrice] = useState(1);
@@ -56,30 +57,36 @@ const NewItem = () => {
             <Input type="text" id="imageLink" placeholder="Image Link" />
           </div>
           <div className="grid w-full gap-1.5 mt-4">
-            <Label htmlFor="message-2">Your Message</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               placeholder="Type your message here."
-              id="message-2"
+              id="description"
               style={{ resize: "none" }}
             />
           </div>
           <div className="flex flex-col space-y-1.5 mt-4">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">Item Category</Label>
             <Select>
               <SelectTrigger id="category">
-                <SelectValue placeholder="Select Category" />
+                <SelectValue placeholder="Select Item Category" />
               </SelectTrigger>
               <SelectContent position="popper">
-                <SelectItem value="next">Next.js</SelectItem>
-                <SelectItem value="sveltekit">SvelteKit</SelectItem>
-                <SelectItem value="astro">Astro</SelectItem>
-                <SelectItem value="nuxt">Nuxt.js</SelectItem>
+                {categories.map((category) => {
+                  return (
+                    <SelectItem
+                      key={category.category_id}
+                      value={`${category.category_name}`}
+                    >
+                      {category.category_name}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-3 gap-4 w-full max-w-sm items-center gap-1.5 mt-4">
             <div>
-              <Label htmlFor="price">Price</Label>
+              <Label htmlFor="price">Item Price</Label>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -111,7 +118,7 @@ const NewItem = () => {
               </div>
             </div>
             <div>
-              <Label htmlFor="stock">Stock</Label>
+              <Label htmlFor="stock">Item Stock</Label>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -143,7 +150,7 @@ const NewItem = () => {
               </div>
             </div>
             <div className="flex flex-col">
-              <Label htmlFor="">Available</Label>
+              <Label htmlFor="">Item Availability</Label>
               <Switch className="mt-3" />
             </div>
           </div>
