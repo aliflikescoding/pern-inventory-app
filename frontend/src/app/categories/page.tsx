@@ -20,7 +20,8 @@ export default function Categories() {
               <CategoryCard
                 key={category.category_id}
                 name={category.category_name}
-                link={category.category_image_link}
+                imageLink={category.category_image_link}
+                link="test"
               />
             );
           })}
