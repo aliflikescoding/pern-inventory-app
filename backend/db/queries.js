@@ -104,3 +104,11 @@ export async function deleteIdItem(item_id) {
   );
   return result;
 }
+
+export async function getCategoryItems(category_id) {
+  const result = await pool.query(
+    "SELECT * FROM item WHERE category_id = $1",
+    [category_id]
+  )
+  return result;
+}

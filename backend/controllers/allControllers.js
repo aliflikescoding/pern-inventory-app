@@ -8,7 +8,8 @@ import {
   getAllItems,
   getIdItem,
   updateIdItem,
-  deleteIdItem
+  deleteIdItem,
+  getCategoryItems
 } from "../db/queries.js";
 
 // desc Post a category
@@ -160,6 +161,16 @@ export const deleteItem = async (req, res, next) => {
     const { id } = req.params;
     await deleteIdItem(id);
     res.json("Item was deleted!");
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const getItemsBasedOnCategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const items = await getCategoryItems(id);
+    res.json(items.rows);
   } catch (err) {
     console.error(err);
   }

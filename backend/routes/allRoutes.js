@@ -10,7 +10,8 @@ import {
   getAllItem,
   getAnItem,
   updateAnItem,
-  deleteItem
+  deleteItem,
+  getItemsBasedOnCategory
 } from "../controllers/allControllers.js";
 
 // Create Category
@@ -42,5 +43,8 @@ router.put("/item/:id", updateAnItem);
 
 // Delete items
 router.delete("/item/:id", deleteItem);
+
+// Get items where based on the category
+router.get("/categoryitem/:id", getItemsBasedOnCategory);
 
 export default router;
