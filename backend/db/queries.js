@@ -96,3 +96,11 @@ export async function updateIdItem(
   );
   return result;
 }
+
+export async function deleteIdItem(item_id) {
+  const result = await pool.query(
+    "DELETE FROM item WHERE item_id = $1",
+    [item_id]
+  );
+  return result;
+}

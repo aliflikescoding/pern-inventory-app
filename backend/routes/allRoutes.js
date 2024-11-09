@@ -9,7 +9,8 @@ import {
   createItem,
   getAllItem,
   getAnItem,
-  updateAnItem
+  updateAnItem,
+  deleteItem
 } from "../controllers/allControllers.js";
 
 // Create Category
@@ -33,10 +34,13 @@ router.post("/item", createItem);
 // Get all items
 router.get("/item", getAllItem);
 
-// Get a category
+// Get a items
 router.get("/item/:id", getAnItem);
 
-// Update a category
+// Update a items
 router.put("/item/:id", updateAnItem);
+
+// Delete items
+router.delete("/item/:id", deleteItem);
 
 export default router;

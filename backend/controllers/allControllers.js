@@ -8,6 +8,7 @@ import {
   getAllItems,
   getIdItem,
   updateIdItem,
+  deleteIdItem
 } from "../db/queries.js";
 
 // desc Post a category
@@ -153,3 +154,13 @@ export const updateAnItem = async (req, res, next) => {
     console.log(err);
   }
 };
+
+export const deleteItem = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await deleteIdItem(id);
+    res.json("Item was deleted!");
+  } catch (err) {
+    console.error(err);
+  }
+}
