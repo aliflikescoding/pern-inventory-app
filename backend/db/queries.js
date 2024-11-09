@@ -53,7 +53,15 @@ export async function insertIntoItem(
   const result = await pool.query(
     `INSERT INTO item (item_name, item_desc, item_price, item_stock, item_status, item_image_link, category_id)
      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-    [item_name, item_desc, item_price, item_stock, item_status, item_image_link, category_id]
+    [
+      item_name,
+      item_desc,
+      item_price,
+      item_stock,
+      item_status,
+      item_image_link,
+      category_id,
+    ]
   );
   return result;
 }
@@ -64,10 +72,9 @@ export async function getAllItems() {
 }
 
 export async function getIdItem(item_id) {
-  const result = await pool.query(
-    "SELECT * FROM item WHERE item_id = ($1)",
-    [item_id]
-  );
+  const result = await pool.query("SELECT * FROM item WHERE item_id = ($1)", [
+    item_id,
+  ]);
   return result;
 }
 
@@ -92,23 +99,53 @@ export async function updateIdItem(
          category_id = $7
      WHERE item_id = $8
      RETURNING *`,
-    [item_name, item_desc, item_price, item_stock, item_status, item_image_link, category_id, item_id]
+    [
+      item_name,
+      item_desc,
+      item_price,
+      item_stock,
+      item_status,
+      item_image_link,
+      category_id,
+      item_id,
+    ]
   );
   return result;
 }
 
 export async function deleteIdItem(item_id) {
-  const result = await pool.query(
-    "DELETE FROM item WHERE item_id = $1",
-    [item_id]
-  );
+  const result = await pool.query("DELETE FROM item WHERE item_id = $1", [
+    item_id,
+  ]);
   return result;
 }
 
 export async function getCategoryItems(category_id) {
-  const result = await pool.query(
-    "SELECT * FROM item WHERE category_id = $1",
-    [category_id]
-  )
+  const result = await pool.query("SELECT * FROM item WHERE category_id = $1", [
+    category_id,
+  ]);
   return result;
 }
+
+export async function getAllItemsWithNames() {
+  const result = await pool.query(
+    `SELECT 
+      item_id,
+      item_name,
+      item_desc,
+      item_price,
+      item_stock,
+      item_status,
+      item_image_link,
+      item.category_id,
+      category_name
+     FROM 
+        item
+     JOIN 
+        category 
+     ON 
+        item.category_id = category.category_id;`
+  );
+  return result;
+}
+

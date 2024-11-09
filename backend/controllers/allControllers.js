@@ -9,7 +9,8 @@ import {
   getIdItem,
   updateIdItem,
   deleteIdItem,
-  getCategoryItems
+  getCategoryItems,
+  getAllItemsWithNames
 } from "../db/queries.js";
 
 // desc Post a category
@@ -175,3 +176,14 @@ export const getItemsBasedOnCategory = async (req, res, next) => {
     console.error(err);
   }
 }
+
+// desc Get all items with category name
+// @route GET /itemwithcatname
+export const getAllItemsWithCatName = async (req, res, next) => {
+  try {
+    const allItems = await getAllItemsWithNames();
+    res.json(allItems.rows);
+  } catch (err) {
+    console.error(err);
+  }
+};

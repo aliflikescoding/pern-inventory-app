@@ -11,7 +11,8 @@ import {
   getAnItem,
   updateAnItem,
   deleteItem,
-  getItemsBasedOnCategory
+  getItemsBasedOnCategory,
+  getAllItemsWithCatName
 } from "../controllers/allControllers.js";
 
 // Create Category
@@ -46,5 +47,8 @@ router.delete("/item/:id", deleteItem);
 
 // Get items where based on the category
 router.get("/categoryitem/:id", getItemsBasedOnCategory);
+
+// Get items with name
+router.get("/itemwithcatname", getAllItemsWithCatName);
 
 export default router;

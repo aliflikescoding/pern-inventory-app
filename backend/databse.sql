@@ -17,5 +17,3 @@ CREATE TABLE item (
     FOREIGN KEY (category_id)
     REFERENCES category (category_id)
 );
-
-INSERT INTO category (category_id, category_image_link) VALUES ($1, $2)
