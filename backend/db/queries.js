@@ -137,7 +137,6 @@ export async function getAllItemsWithNames() {
       item_stock,
       item_status,
       item_image_link,
-      item.category_id,
       category_name
      FROM 
         item
