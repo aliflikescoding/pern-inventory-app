@@ -43,12 +43,28 @@ import { categories } from "../data";
 
 // Form Schema
 const formSchema = z.object({
-  itemName: z.string().min(1, "Item name is required"),
-  imageLink: z.string().url("Must be a valid URL"),
-  itemDesc: z.string().min(1, "Description is required"),
+  itemName: z
+    .string()
+    .min(1, "Item name is required")
+    .max(50, "Item name must be less than 50 characters"),
+  imageLink: z
+    .string()
+    .url("Must be a valid URL")
+    .min(1, "Image link is required"),
+  itemDesc: z
+    .string()
+    .min(10, "Description must be at least 10 characters")
+    .max(500, "Description must be less than 500 characters"),
   itemCategory: z.string().min(1, "Category is required"),
-  price: z.number().min(0, "Price must be positive"),
-  stock: z.number().min(0, "Stock must be positive"),
+  price: z
+    .number()
+    .min(0.01, "Price must be greater than 0")
+    .max(999999.99, "Price must be less than 1,000,000"),
+  stock: z
+    .number()
+    .int("Stock must be a whole number")
+    .min(0, "Stock cannot be negative")
+    .max(999999, "Stock must be less than 1,000,000"),
   itemAvail: z.boolean(),
 });
 
@@ -177,6 +193,7 @@ const Items = () => {
   const barData1 = processDataBar1(allItems);
   const dataPieAvail = getAvailabilitySummary(allItems);
   const barData2 = processDataBar2(allItems);
+  const [formError, setFormError] = React.useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -191,10 +208,32 @@ const Items = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Handle the form submission
-    console.log(values);
-    setIsDialogOpen(false);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      // Validate the form data
+      const validatedData = formSchema.parse(values);
+
+      // Handle the form submission
+      console.log(validatedData);
+
+      // Clear any previous errors
+      setFormError(null);
+
+      // Close the dialog
+      setIsDialogOpen(false);
+
+      // Reset form
+      form.reset();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Handle Zod validation errors
+        const errorMessages = error.errors.map((err) => err.message).join(", ");
+        setFormError(errorMessages);
+      } else {
+        // Handle other errors
+        setFormError("An unexpected error occurred");
+      }
+    }
   }
 
   const updateFormWithItem = (item: Item) => {
@@ -312,7 +351,7 @@ const Items = () => {
                       <DialogTrigger asChild>
                         <PenLine className="hover:text-primary hover:scale-90 cursor-pointer" />
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
+                      <DialogContent>
                         <DialogHeader>
                           <DialogTitle>
                             Edit Item &quot;
@@ -329,44 +368,66 @@ const Items = () => {
                             onSubmit={form.handleSubmit(onSubmit)}
                             className="space-y-4"
                           >
+                            {formError && (
+                              <div className="text-red-500 text-sm p-2 bg-red-50 rounded">
+                                {formError}
+                              </div>
+                            )}
                             <FormField
                               control={form.control}
                               name="itemName"
-                              render={({ field }) => (
+                              render={({ field, fieldState }) => (
                                 <FormItem>
                                   <FormLabel>Name</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Item name" {...field} />
+                                    <Input
+                                      placeholder="Item name"
+                                      {...field}
+                                      className={
+                                        fieldState.error ? "border-red-500" : ""
+                                      }
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
-
                             <FormField
                               control={form.control}
                               name="imageLink"
-                              render={({ field }) => (
+                              render={({ field, fieldState }) => (
                                 <FormItem>
                                   <FormLabel>Image Link</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Image URL" {...field} />
+                                    <Input
+                                      placeholder="Image Link"
+                                      {...field}
+                                      className={
+                                        fieldState.error ? "border-red-500" : ""
+                                      }
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
-
                             <FormField
                               control={form.control}
                               name="itemDesc"
-                              render={({ field }) => (
+                              render={({ field, fieldState }) => (
                                 <FormItem>
                                   <FormLabel>Description</FormLabel>
                                   <FormControl>
                                     <Textarea
                                       placeholder="Type your description here."
-                                      className="resize-none"
+                                      className={`
+                                          resize-none
+                                          ${
+                                            fieldState.error
+                                              ? "border-red-500"
+                                              : ""
+                                          }
+                                        `}
                                       {...field}
                                     />
                                   </FormControl>
@@ -374,7 +435,6 @@ const Items = () => {
                                 </FormItem>
                               )}
                             />
-
                             <FormField
                               control={form.control}
                               name="itemCategory"
@@ -406,11 +466,11 @@ const Items = () => {
                               )}
                             />
 
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="flex gap-3">
                               <FormField
                                 control={form.control}
                                 name="price"
-                                render={({ field }) => (
+                                render={({ field, fieldState }) => (
                                   <FormItem>
                                     <FormLabel>Price</FormLabel>
                                     <FormControl>
@@ -419,25 +479,46 @@ const Items = () => {
                                           type="button"
                                           variant="outline"
                                           size="icon"
-                                          onClick={() =>
-                                            field.onChange(field.value - 1)
-                                          }
+                                          onClick={() => {
+                                            const newValue = Math.max(
+                                              0.01,
+                                              field.value - 1
+                                            );
+                                            field.onChange(newValue);
+                                          }}
                                           className="h-10 w-10"
                                         >
                                           <Minus className="h-4 w-4" />
                                         </Button>
                                         <Input
                                           type="number"
+                                          step="0.01"
                                           {...field}
-                                          className="w-20 text-center"
+                                          onChange={(e) => {
+                                            const value = parseFloat(
+                                              e.target.value
+                                            );
+                                            field.onChange(
+                                              isNaN(value) ? 0 : value
+                                            );
+                                          }}
+                                          className={`w-20 text-center ${
+                                            fieldState.error
+                                              ? "border-red-500"
+                                              : ""
+                                          }`}
                                         />
                                         <Button
                                           type="button"
                                           variant="outline"
                                           size="icon"
-                                          onClick={() =>
-                                            field.onChange(field.value + 1)
-                                          }
+                                          onClick={() => {
+                                            const newValue = Math.min(
+                                              999999.99,
+                                              field.value + 1
+                                            );
+                                            field.onChange(newValue);
+                                          }}
                                           className="h-10 w-10"
                                         >
                                           <Plus className="h-4 w-4" />
@@ -452,7 +533,7 @@ const Items = () => {
                               <FormField
                                 control={form.control}
                                 name="stock"
-                                render={({ field }) => (
+                                render={({ field, fieldState }) => (
                                   <FormItem>
                                     <FormLabel>Stock</FormLabel>
                                     <FormControl>
@@ -470,8 +551,21 @@ const Items = () => {
                                         </Button>
                                         <Input
                                           type="number"
+                                          step="0.01"
                                           {...field}
-                                          className="w-20 text-center"
+                                          onChange={(e) => {
+                                            const value = parseFloat(
+                                              e.target.value
+                                            );
+                                            field.onChange(
+                                              isNaN(value) ? 0 : value
+                                            );
+                                          }}
+                                          className={`w-20 text-center ${
+                                            fieldState.error
+                                              ? "border-red-500"
+                                              : ""
+                                          }`}
                                         />
                                         <Button
                                           type="button"
@@ -510,7 +604,11 @@ const Items = () => {
                             </div>
 
                             <DialogFooter>
-                              <Button type="submit" className="mt-4">
+                              <Button
+                                type="submit"
+                                className="mt-4"
+                                disabled={!form.formState.isValid}
+                              >
                                 <PenLine className="mr-2" /> Edit Item
                               </Button>
                             </DialogFooter>
