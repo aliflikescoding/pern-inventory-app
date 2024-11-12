@@ -348,7 +348,7 @@ const Items = () => {
                   <div className="flex justify-center items-center">
                     <Link href="" className="hover:text-primary"></Link>
                     <Dialog
-                      open={isDialogOpen}
+                      
                       onOpenChange={(open) => {
                         setIsDialogOpen(open);
                         if (open) {
