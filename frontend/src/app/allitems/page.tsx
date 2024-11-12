@@ -155,8 +155,15 @@ const Items = () => {
   const barData1 = processDataBar1(allItems);
   const dataPieAvail = getAvailabilitySummary(allItems);
   const barData2 = processDataBar2(allItems);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  /* form states */
+  const [itemName, setItemName] = useState("");
+  const [imageLink, setImageLink] = useState("");
+  const [itemDesc, setItemDesc] = useState("");
+  const [itemCategory, setItemCategory] = useState("");
   const [price, setPrice] = useState(1);
   const [stock, setStock] = useState(1);
+  const [itemAvail, setItemAvail] = useState(false);
 
   const incrementPrice = () => {
     setPrice(price + 1);
@@ -185,7 +192,7 @@ const Items = () => {
         <div className="flex justify-around my-3">
           <BarItemPrice data={barData2} />
           <AvailDonutChart
-            totalAvailable={dataPieAvail.totalAvailable}
+            totalAvailable={dataPieAvail.totalAvailable}dark blue jeans
             totalNotAvailable={dataPieAvail.totalNotAvailable}
           />
         </div>
@@ -269,16 +276,34 @@ const Items = () => {
                 <TableCell>
                   <div className="flex justify-center items-center">
                     <Link href="" className="hover:text-primary"></Link>
-                    <Dialog>
+                    <Dialog
+                      open={isDialogOpen}
+                      onOpenChange={(open) => {
+                        setIsDialogOpen(open);
+                        if (open) {
+                          setItemName(item.item_name);
+                          setImageLink(item.item_image_link);
+                          setItemDesc(item.item_desc);
+                          setPrice(item.item_price);
+                          setStock(item.item_stock);
+                          setItemCategory(item.category_name);
+                          setItemAvail(item.item_status);
+                        }
+                      }}
+                    >
                       <DialogTrigger asChild>
                         <PenLine className="hover:text-primary hover:scale-90 cursor-pointer" />
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
-                          <DialogTitle>Edit Item &quot;<span className="capitalize">{item.item_name}</span>&quot;</DialogTitle>
+                          <DialogTitle>
+                            Edit Item &quot;
+                            <span className="capitalize">{itemName}</span>
+                            &quot;
+                          </DialogTitle>
                           <DialogDescription>
-                            Make changes to {item.item_name}. Click edit item when
-                            you&apos;re done.
+                            Make changes to {itemName}. Click edit item
+                            when you&apos;re done.
                           </DialogDescription>
                         </DialogHeader>
                         <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -287,7 +312,8 @@ const Items = () => {
                             type="text"
                             id="name"
                             placeholder="Item Name"
-                            value={item.item_name}
+                            value={itemName}
+                            onChange={(e) => setItemName(e.target.value)}
                           />
                         </div>
                         <div className="grid w-full max-w-sm items-center gap-1.5 mt-4">
@@ -296,7 +322,8 @@ const Items = () => {
                             type="text"
                             id="imageLink"
                             placeholder="Image Link"
-                            value={item.item_image_link}
+                            value={imageLink}
+                            onChange={(e) => setImageLink(e.target.value)}
                           />
                         </div>
                         <div className="grid w-full gap-1.5 mt-4">
@@ -305,12 +332,13 @@ const Items = () => {
                             placeholder="Type your message here."
                             id="description"
                             style={{ resize: "none" }}
-                            value={item.item_desc}
+                            value={itemDesc}
+                            onChange={(e) => setItemDesc(e.target.value)}
                           />
                         </div>
                         <div className="flex flex-col space-y-1.5 mt-4">
                           <Label htmlFor="category">Item Category</Label>
-                          <Select>
+                          <Select defaultValue={itemCategory}>
                             <SelectTrigger id="category">
                               <SelectValue placeholder="Select Item Category" />
                             </SelectTrigger>
@@ -347,7 +375,7 @@ const Items = () => {
                                 inputMode="numeric"
                                 step="any"
                                 className="no-arrows h-10 w-12 flex text-center"
-                                value={item.item_price}
+                                value={price}
                                 onChange={(e) =>
                                   setPrice(parseInt(e.target.value))
                                 }
@@ -381,7 +409,7 @@ const Items = () => {
                                 inputMode="numeric"
                                 step="any"
                                 className="no-arrows h-10 w-12 flex text-center"
-                                value={item.item_stock}
+                                value={stock}
                                 onChange={(e) =>
                                   setStock(parseInt(e.target.value))
                                 }
@@ -399,7 +427,11 @@ const Items = () => {
                           </div>
                           <div className="flex flex-col">
                             <Label htmlFor="">Item Availability</Label>
-                            <Switch checked={item.item_status} className="mt-3" />
+                            <Switch
+                              checked={itemAvail}
+                              onCheckedChange={() => setItemAvail(!itemAvail)}
+                              className="mt-3"                            
+                            />
                           </div>
                         </div>
                         <DialogFooter>
