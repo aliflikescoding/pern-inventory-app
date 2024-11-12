@@ -275,10 +275,10 @@ const Items = () => {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
-                          <DialogTitle>Edit Item "<span className="capitalize">{item.item_name}</span>"</DialogTitle>
+                          <DialogTitle>Edit Item &quot;<span className="capitalize">{item.item_name}</span>&quot;</DialogTitle>
                           <DialogDescription>
                             Make changes to {item.item_name}. Click edit item when
-                            you're done.
+                            you&apos;re done.
                           </DialogDescription>
                         </DialogHeader>
                         <div className="grid w-full max-w-sm items-center gap-1.5">
