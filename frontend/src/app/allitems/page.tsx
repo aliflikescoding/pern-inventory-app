@@ -236,6 +236,14 @@ const Items = () => {
     }
   }
 
+  async function onDeleteSubmit(id: number) {
+    try {
+      console.log(`Deleting the item: ${id}`);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   const updateFormWithItem = (item: Item) => {
     form.reset({
       itemName: item.item_name,
@@ -672,24 +680,36 @@ const Items = () => {
                         <Trash className="transition-transform text-destructive transform hover:scale-95 ml-2" />
                       </AlertDialogTrigger>
                       <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Are you absolutely sure you want to delete{" "}
-                            <span className="capitalize">{item.item_name}</span>{" "}
-                            ?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete {item.item_name} and remove your data from
-                            our servers.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction className="bg-destructive hover:bg-chart-3">
-                            Continue
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            onDeleteSubmit(item.item_id);
+                          }}
+                        >
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Are you absolutely sure you want to delete{" "}
+                              <span className="capitalize">
+                                {item.item_name}
+                              </span>
+                              ?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will
+                              permanently delete {item.item_name} and remove
+                              your data from our servers.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive hover:bg-chart-3"
+                              type="submit"
+                            >
+                              Continue
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </form>
                       </AlertDialogContent>
                     </AlertDialog>
                   </div>
