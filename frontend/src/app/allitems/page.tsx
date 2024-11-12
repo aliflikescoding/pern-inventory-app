@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import {
   Table,
   TableBody,
@@ -8,8 +11,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { allItems } from "@/app/data.js";
-import { PenLine, Box, Layers3, Trash } from "lucide-react";
+import { PenLine, Box, Layers3, Trash, Plus, Minus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,7 +29,6 @@ import AllItemsDonutChart from "@/components/all-items-donut-chart";
 import AvailDonutChart from "@/components/avail-donut-chart";
 import BarItemPrice from "@/components/bar-item-price";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,8 +40,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { categories } from "../data";
-import { Plus, Minus } from "lucide-react";
 
+// Form Schema
+const formSchema = z.object({
+  itemName: z.string().min(1, "Item name is required"),
+  imageLink: z.string().url("Must be a valid URL"),
+  itemDesc: z.string().min(1, "Description is required"),
+  itemCategory: z.string().min(1, "Category is required"),
+  price: z.number().min(0, "Price must be positive"),
+  stock: z.number().min(0, "Stock must be positive"),
+  itemAvail: z.boolean(),
+});
+
+// Rest of your interface definitions and data processing functions remain the same
 interface Item {
   item_id: number;
   item_name: string;
@@ -151,38 +172,41 @@ const getAvailabilitySummary = (items: typeof allItems) => {
 };
 
 const Items = () => {
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const dataPie = processDataPie(allItems);
   const barData1 = processDataBar1(allItems);
   const dataPieAvail = getAvailabilitySummary(allItems);
   const barData2 = processDataBar2(allItems);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  /* form states */
-  const [itemName, setItemName] = useState("");
-  const [imageLink, setImageLink] = useState("");
-  const [itemDesc, setItemDesc] = useState("");
-  const [itemCategory, setItemCategory] = useState("");
-  const [price, setPrice] = useState(1);
-  const [stock, setStock] = useState(1);
-  const [itemAvail, setItemAvail] = useState(false);
 
-  const incrementPrice = () => {
-    setPrice(price + 1);
-  };
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      itemName: "",
+      imageLink: "",
+      itemDesc: "",
+      itemCategory: "",
+      price: 1,
+      stock: 1,
+      itemAvail: false,
+    },
+  });
 
-  const decrementPrice = () => {
-    if (price > 0) {
-      setPrice(price - 1);
-    }
-  };
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // Handle the form submission
+    console.log(values);
+    setIsDialogOpen(false);
+  }
 
-  const incrementStock = () => {
-    setStock(stock + 1);
-  };
-
-  const decrementStock = () => {
-    if (stock > 0) {
-      setStock(stock - 1);
-    }
+  const updateFormWithItem = (item: Item) => {
+    form.reset({
+      itemName: item.item_name,
+      imageLink: item.item_image_link,
+      itemDesc: item.item_desc,
+      itemCategory: item.category_name,
+      price: item.item_price,
+      stock: item.item_stock,
+      itemAvail: item.item_status,
+    });
   };
 
   return (
@@ -192,7 +216,7 @@ const Items = () => {
         <div className="flex justify-around my-3">
           <BarItemPrice data={barData2} />
           <AvailDonutChart
-            totalAvailable={dataPieAvail.totalAvailable}dark blue jeans
+            totalAvailable={dataPieAvail.totalAvailable}
             totalNotAvailable={dataPieAvail.totalNotAvailable}
           />
         </div>
@@ -281,13 +305,7 @@ const Items = () => {
                       onOpenChange={(open) => {
                         setIsDialogOpen(open);
                         if (open) {
-                          setItemName(item.item_name);
-                          setImageLink(item.item_image_link);
-                          setItemDesc(item.item_desc);
-                          setPrice(item.item_price);
-                          setStock(item.item_stock);
-                          setItemCategory(item.category_name);
-                          setItemAvail(item.item_status);
+                          updateFormWithItem(item);
                         }
                       }}
                     >
@@ -298,149 +316,206 @@ const Items = () => {
                         <DialogHeader>
                           <DialogTitle>
                             Edit Item &quot;
-                            <span className="capitalize">{itemName}</span>
+                            <span className="capitalize">{item.item_name}</span>
                             &quot;
                           </DialogTitle>
                           <DialogDescription>
-                            Make changes to {itemName}. Click edit item
+                            Make changes to {item.item_name}. Click edit item
                             when you&apos;re done.
                           </DialogDescription>
                         </DialogHeader>
-                        <div className="grid w-full max-w-sm items-center gap-1.5">
-                          <Label htmlFor="name">Name</Label>
-                          <Input
-                            type="text"
-                            id="name"
-                            placeholder="Item Name"
-                            value={itemName}
-                            onChange={(e) => setItemName(e.target.value)}
-                          />
-                        </div>
-                        <div className="grid w-full max-w-sm items-center gap-1.5 mt-4">
-                          <Label htmlFor="imageLink">Image Link</Label>
-                          <Input
-                            type="text"
-                            id="imageLink"
-                            placeholder="Image Link"
-                            value={imageLink}
-                            onChange={(e) => setImageLink(e.target.value)}
-                          />
-                        </div>
-                        <div className="grid w-full gap-1.5 mt-4">
-                          <Label htmlFor="description">Description</Label>
-                          <Textarea
-                            placeholder="Type your message here."
-                            id="description"
-                            style={{ resize: "none" }}
-                            value={itemDesc}
-                            onChange={(e) => setItemDesc(e.target.value)}
-                          />
-                        </div>
-                        <div className="flex flex-col space-y-1.5 mt-4">
-                          <Label htmlFor="category">Item Category</Label>
-                          <Select defaultValue={itemCategory}>
-                            <SelectTrigger id="category">
-                              <SelectValue placeholder="Select Item Category" />
-                            </SelectTrigger>
-                            <SelectContent position="popper">
-                              {categories.map((category) => {
-                                return (
-                                  <SelectItem
-                                    key={category.category_id}
-                                    value={`${category.category_name}`}
-                                  >
-                                    {category.category_name}
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4 w-full max-w-sm items-center gap-1.5 mt-4">
-                          <div>
-                            <Label htmlFor="price">Item Price</Label>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={decrementPrice}
-                                className="h-10 w-10"
-                                aria-label="Decrease price"
-                              >
-                                <Minus className="h-4 w-4" />
-                              </Button>
-                              <Input
-                                type="number"
-                                id="price"
-                                inputMode="numeric"
-                                step="any"
-                                className="no-arrows h-10 w-12 flex text-center"
-                                value={price}
-                                onChange={(e) =>
-                                  setPrice(parseInt(e.target.value))
-                                }
-                              />
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={incrementPrice}
-                                className="h-10 w-10"
-                                aria-label="Increase price"
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          <div>
-                            <Label htmlFor="stock">Item Stock</Label>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={decrementStock}
-                                className="h-10 w-10"
-                                aria-label="Decrease stock"
-                              >
-                                <Minus className="h-4 w-4" />
-                              </Button>
-                              <Input
-                                type="number"
-                                id="stock"
-                                inputMode="numeric"
-                                step="any"
-                                className="no-arrows h-10 w-12 flex text-center"
-                                value={stock}
-                                onChange={(e) =>
-                                  setStock(parseInt(e.target.value))
-                                }
-                              />
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={incrementStock}
-                                className="h-10 w-10"
-                                aria-label="Increase stock"
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="flex flex-col">
-                            <Label htmlFor="">Item Availability</Label>
-                            <Switch
-                              checked={itemAvail}
-                              onCheckedChange={() => setItemAvail(!itemAvail)}
-                              className="mt-3"                            
+                        <Form {...form}>
+                          <form
+                            onSubmit={form.handleSubmit(onSubmit)}
+                            className="space-y-4"
+                          >
+                            <FormField
+                              control={form.control}
+                              name="itemName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Name</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Item name" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
                             />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <div className="flex justify-center">
-                            <Button className="mt-4">
-                              <PenLine /> Edit Item
-                            </Button>
-                          </div>
-                        </DialogFooter>
+
+                            <FormField
+                              control={form.control}
+                              name="imageLink"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Image Link</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Image URL" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name="itemDesc"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Description</FormLabel>
+                                  <FormControl>
+                                    <Textarea
+                                      placeholder="Type your description here."
+                                      className="resize-none"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name="itemCategory"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Category</FormLabel>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select a category" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {categories.map((category) => (
+                                        <SelectItem
+                                          key={category.category_id}
+                                          value={category.category_name}
+                                        >
+                                          {category.category_name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <div className="grid grid-cols-3 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="price"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Price</FormLabel>
+                                    <FormControl>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() =>
+                                            field.onChange(field.value - 1)
+                                          }
+                                          className="h-10 w-10"
+                                        >
+                                          <Minus className="h-4 w-4" />
+                                        </Button>
+                                        <Input
+                                          type="number"
+                                          {...field}
+                                          className="w-20 text-center"
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() =>
+                                            field.onChange(field.value + 1)
+                                          }
+                                          className="h-10 w-10"
+                                        >
+                                          <Plus className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="stock"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Stock</FormLabel>
+                                    <FormControl>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() =>
+                                            field.onChange(field.value - 1)
+                                          }
+                                          className="h-10 w-10"
+                                        >
+                                          <Minus className="h-4 w-4" />
+                                        </Button>
+                                        <Input
+                                          type="number"
+                                          {...field}
+                                          className="w-20 text-center"
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() =>
+                                            field.onChange(field.value + 1)
+                                          }
+                                          className="h-10 w-10"
+                                        >
+                                          <Plus className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="itemAvail"
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-col">
+                                    <FormLabel>Availability</FormLabel>
+                                    <FormControl>
+                                      <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <DialogFooter>
+                              <Button type="submit" className="mt-4">
+                                <PenLine className="mr-2" /> Edit Item
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </Form>
                       </DialogContent>
                     </Dialog>
                     <AlertDialog>
