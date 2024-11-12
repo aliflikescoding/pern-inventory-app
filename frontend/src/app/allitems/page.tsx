@@ -373,6 +373,12 @@ const Items = () => {
                                 {formError}
                               </div>
                             )}
+                            {form.formState.errors.root && (
+                              <div className="text-red-500 text-sm p-2 bg-red-50 rounded">
+                                {form.formState.errors.root.message}
+                              </div>
+                            )}
+
                             <FormField
                               control={form.control}
                               name="itemName"
@@ -386,6 +392,12 @@ const Items = () => {
                                       className={
                                         fieldState.error ? "border-red-500" : ""
                                       }
+                                      aria-invalid={fieldState.invalid}
+                                      onBlur={(e) => {
+                                        field.onBlur();
+                                        // Trigger validation on blur
+                                        form.trigger("itemName");
+                                      }}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -405,6 +417,12 @@ const Items = () => {
                                       className={
                                         fieldState.error ? "border-red-500" : ""
                                       }
+                                      aria-invalid={fieldState.invalid}
+                                      onBlur={(e) => {
+                                        field.onBlur();
+                                        // Trigger validation on blur
+                                        form.trigger("imageLink");
+                                      }}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -419,19 +437,20 @@ const Items = () => {
                                   <FormLabel>Description</FormLabel>
                                   <FormControl>
                                     <Textarea
+                                      {...field} // Move this to the beginning
                                       placeholder="Type your description here."
-                                      className={`
-                                          resize-none
-                                          ${
-                                            fieldState.error
-                                              ? "border-red-500"
-                                              : ""
-                                          }
-                                        `}
-                                      {...field}
+                                      className={`resize-none ${
+                                        fieldState.error ? "border-red-500" : ""
+                                      }`}
+                                      aria-invalid={!!fieldState.error}
+                                      onBlur={() => {
+                                        field.onBlur();
+                                        form.trigger("itemDesc");
+                                      }}
                                     />
                                   </FormControl>
-                                  <FormMessage />
+                                  {/* Add a min height to prevent layout shift */}
+                                  <FormMessage className="min-h-[20px]" />
                                 </FormItem>
                               )}
                             />
@@ -485,23 +504,33 @@ const Items = () => {
                                               field.value - 1
                                             );
                                             field.onChange(newValue);
+                                            // Trigger validation after changing value
+                                            form.trigger("price");
                                           }}
                                           className="h-10 w-10"
                                         >
                                           <Minus className="h-4 w-4" />
                                         </Button>
                                         <Input
+                                          {...field}
                                           type="number"
                                           step="0.01"
-                                          {...field}
                                           onChange={(e) => {
                                             const value = parseFloat(
                                               e.target.value
                                             );
-                                            field.onChange(
-                                              isNaN(value) ? 0 : value
-                                            );
+                                            const newValue = isNaN(value)
+                                              ? 0
+                                              : value;
+                                            field.onChange(newValue);
+                                            // Trigger validation after changing value
+                                            form.trigger("price");
                                           }}
+                                          onBlur={() => {
+                                            field.onBlur();
+                                            form.trigger("price");
+                                          }}
+                                          aria-invalid={!!fieldState.error}
                                           className={`w-20 text-center ${
                                             fieldState.error
                                               ? "border-red-500"
@@ -518,6 +547,8 @@ const Items = () => {
                                               field.value + 1
                                             );
                                             field.onChange(newValue);
+                                            // Trigger validation after changing value
+                                            form.trigger("price");
                                           }}
                                           className="h-10 w-10"
                                         >
@@ -525,7 +556,7 @@ const Items = () => {
                                         </Button>
                                       </div>
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage className="min-h-[20px]" />
                                   </FormItem>
                                 )}
                               />
@@ -542,25 +573,39 @@ const Items = () => {
                                           type="button"
                                           variant="outline"
                                           size="icon"
-                                          onClick={() =>
-                                            field.onChange(field.value - 1)
-                                          }
+                                          onClick={() => {
+                                            const newValue = Math.max(
+                                              0,
+                                              field.value - 1
+                                            );
+                                            field.onChange(newValue);
+                                            // Trigger validation after changing value
+                                            form.trigger("stock");
+                                          }}
                                           className="h-10 w-10"
                                         >
                                           <Minus className="h-4 w-4" />
                                         </Button>
                                         <Input
-                                          type="number"
-                                          step="0.01"
                                           {...field}
+                                          type="number"
+                                          step="1"
                                           onChange={(e) => {
-                                            const value = parseFloat(
+                                            const value = parseInt(
                                               e.target.value
                                             );
-                                            field.onChange(
-                                              isNaN(value) ? 0 : value
-                                            );
+                                            const newValue = isNaN(value)
+                                              ? 0
+                                              : value;
+                                            field.onChange(newValue);
+                                            // Trigger validation after changing value
+                                            form.trigger("stock");
                                           }}
+                                          onBlur={() => {
+                                            field.onBlur();
+                                            form.trigger("stock");
+                                          }}
+                                          aria-invalid={!!fieldState.error}
                                           className={`w-20 text-center ${
                                             fieldState.error
                                               ? "border-red-500"
@@ -571,16 +616,22 @@ const Items = () => {
                                           type="button"
                                           variant="outline"
                                           size="icon"
-                                          onClick={() =>
-                                            field.onChange(field.value + 1)
-                                          }
+                                          onClick={() => {
+                                            const newValue = Math.min(
+                                              999999,
+                                              field.value + 1
+                                            );
+                                            field.onChange(newValue);
+                                            // Trigger validation after changing value
+                                            form.trigger("stock");
+                                          }}
                                           className="h-10 w-10"
                                         >
                                           <Plus className="h-4 w-4" />
                                         </Button>
                                       </div>
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage className="min-h-[20px]" />
                                   </FormItem>
                                 )}
                               />
