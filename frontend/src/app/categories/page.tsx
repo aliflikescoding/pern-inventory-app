@@ -130,7 +130,7 @@ export default function Categories() {
                 className="p-5 flex flex-col items-center"
               >
                 <Link
-                  href={`/categories/${category.category_id}`}
+                  href={`/categories/${category.category_id}/items`}
                   className="relative"
                 >
                   {/* Use relative positioning for the parent container */}

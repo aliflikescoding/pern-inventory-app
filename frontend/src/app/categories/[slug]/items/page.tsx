@@ -1,16 +1,37 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { items, categories } from "@/app/data";
+interface Item {
+  item_id: number;
+  item_name: string;
+  item_desc: string;
+  item_price: number;
+  item_stock: number;
+  item_status: boolean;
+  item_image_link: string;
+  category_id: number;
+}
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import Image from "next/image";
+import { PenLine, Box, Trash, Plus, Minus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -19,29 +40,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { allItems } from "@/app/data.js";
-import { PenLine, Box, Layers3, Trash, Plus, Minus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
-import Link from "next/link";
-import BarAllItemsOne from "@/components/bar-all-items-one";
-import AllItemsDonutChart from "@/components/all-items-donut-chart";
-import AvailDonutChart from "@/components/avail-donut-chart";
-import BarItemPrice from "@/components/bar-item-price";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { categories } from "../data";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-// Form Schema
 const formSchema = z.object({
   itemName: z
     .string()
@@ -55,7 +65,6 @@ const formSchema = z.object({
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description must be less than 500 characters"),
-  itemCategory: z.string().min(1, "Category is required"),
   price: z
     .number()
     .min(0.01, "Price must be greater than 0")
@@ -68,145 +77,65 @@ const formSchema = z.object({
   itemAvail: z.boolean(),
 });
 
-// Rest of your interface definitions and data processing functions remain the same
-interface Item {
-  item_id: number;
-  item_name: string;
-  item_desc: string;
-  item_price: number;
-  item_stock: number;
-  item_status: boolean;
-  item_image_link: string;
-  category_id: number;
-  category_name: string;
-}
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-
-interface ProcessedItem {
-  id: number;
-  category_name: string;
-  total: number;
-}
-
-const processDataPie = (items: Item[]): ProcessedItem[] => {
-  // Initialize an empty object to store the aggregated data
-  const categoryCount: {
-    [key: string]: { id: number; category_name: string; total: number };
-  } = {};
-
-  // Loop through all items and group them by category
-  items.forEach((item) => {
-    const { category_name } = item;
-    if (!categoryCount[category_name]) {
-      // If category doesn't exist, create it and set total to 1
-      categoryCount[category_name] = {
-        id: Object.keys(categoryCount).length,
-        category_name,
-        total: 1,
-      };
-    } else {
-      // Otherwise, just increment the total count
-      categoryCount[category_name].total += 1;
-    }
-  });
-
-  // Bright colors object
-  const colors = {
-    brightColors: [
-      "#1E90FF", // Dodger Blue
-      "#0000FF", // Blue
-      "#4682B4", // Steel Blue
-      "#6A5ACD", // Slate Blue
-      "#8A2BE2", // Blue Violet
-      "#FF00FF", // Magenta
-      "#8B008B", // Dark Magenta
-      "#DDA0DD", // Plum
-      "#FF1493", // Deep Pink
-      "#FF69B4", // Hot Pink
-    ],
-  };
-
-  // Convert the aggregated object into an array
-  const result = Object.values(categoryCount);
-
-  // Return both the processed data and the brightColors as a new property in the object array
-  return result.map((item, index) => ({
-    ...item,
-    color: colors.brightColors[index % colors.brightColors.length], // Assign a color based on the index
-  }));
-};
-
-const processDataBar1 = (items: Item[]) => {
-  return items.map((item) => ({
-    item_name: item.item_name,
-    item_stock: item.item_stock,
-  }));
-};
-
-const processDataBar2 = (items: Item[]) => {
-  return items.map((item) => ({
-    item_name: item.item_name,
-    item_price: item.item_price,
-  }));
-};
-
-const getAvailabilitySummary = (items: typeof allItems) => {
-  const summary = items.reduce(
-    (acc, item) => {
-      if (item.item_status) {
-        acc.totalAvailable += 1;
-      } else {
-        acc.totalNotAvailable += 1;
-      }
-      return acc;
-    },
-    { totalAvailable: 0, totalNotAvailable: 0 }
-  );
-
-  return summary;
-};
-
-const Items = () => {
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const dataPie = processDataPie(allItems);
-  const barData1 = processDataBar1(allItems);
-  const dataPieAvail = getAvailabilitySummary(allItems);
-  const barData2 = processDataBar2(allItems);
-  const [formError, setFormError] = React.useState<string | null>(null);
-
+export default function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       itemName: "",
       imageLink: "",
       itemDesc: "",
-      itemCategory: "",
       price: 1,
       stock: 1,
       itemAvail: false,
     },
   });
+  const [formError, setFormError] = React.useState<string | null>(null);
+  const [slug, setSlug] = useState<string | null>(null);
+  const [categorizedItems, setCategorizedItems] = useState<Item[]>([]);
+
+  // Function to filter items by category_id
+  function getItemsByCategory(category_id: number): Item[] {
+    return items.filter((item) => item.category_id === category_id);
+  }
+
+  function getCategoryName(category_id: number): string | null {
+    const category = categories.find((cat) => cat.category_id === category_id);
+    return category ? category.category_name : null;
+  }
+
+  // Unwrap the Promise for params using React.use()
+  const unwrappedParams = React.use(params);
+
+  useEffect(() => {
+    if (unwrappedParams?.slug) {
+      setSlug(unwrappedParams.slug);
+    }
+  }, [unwrappedParams]);
+
+  useEffect(() => {
+    console.log(categorizedItems);
+  }, [categorizedItems]);
+
+  useEffect(() => {
+    // Only filter items once the slug is set
+    if (slug !== null) {
+      const categoryId = parseInt(slug);
+      const itemsByCategory = getItemsByCategory(categoryId);
+      setCategorizedItems(itemsByCategory);
+    }
+  }, [slug]);
+
+  async function onDeleteSubmit(id: number) {
+    try {
+      console.log(`Deleting the item: ${id}`);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -218,9 +147,6 @@ const Items = () => {
 
       // Clear any previous errors
       setFormError(null);
-
-      // Close the dialog
-      setIsDialogOpen(false);
 
       // Reset form
       form.reset();
@@ -236,20 +162,11 @@ const Items = () => {
     }
   }
 
-  async function onDeleteSubmit(id: number) {
-    try {
-      console.log(`Deleting the item: ${id}`);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
   const updateFormWithItem = (item: Item) => {
     form.reset({
       itemName: item.item_name,
       imageLink: item.item_image_link,
       itemDesc: item.item_desc,
-      itemCategory: item.category_name,
       price: item.item_price,
       stock: item.item_stock,
       itemAvail: item.item_status,
@@ -257,26 +174,14 @@ const Items = () => {
   };
 
   return (
-    <div className="flex">
-      <div className="p-5">
-        <h1 className="text-5xl font-light">All items</h1>
-        <div className="flex justify-around my-3">
-          <BarItemPrice data={barData2} />
-          <AvailDonutChart
-            totalAvailable={dataPieAvail.totalAvailable}
-            totalNotAvailable={dataPieAvail.totalNotAvailable}
-          />
-        </div>
-        <div className="flex justify-around my-3">
-          <AllItemsDonutChart data={dataPie} />
-          <BarAllItemsOne data={barData1} />
-        </div>
-        <Table className="max-w-full">
-          <TableHeader>
-            <TableRow>{/* Table Headings */}</TableRow>
-          </TableHeader>
-          <TableBody>
-            {allItems.map((item) => (
+    <div>
+      <h1 className="text-4xl capitalize font-light text-center">
+        Items in {slug ? getCategoryName(parseInt(slug)) : "Unknown"}
+      </h1>
+      <Table>
+        <TableBody>
+          {categorizedItems.length > 0 ? (
+            categorizedItems.map((item) => (
               <TableRow key={item.item_id}>
                 <TableCell className="mx-2">
                   <Image
@@ -288,29 +193,19 @@ const Items = () => {
                   />
                 </TableCell>
                 <TableCell>
-                  <div className="border-[1px] h-[25px]"></div>
+                  <div className="border-[1px] w-[1px] h-[25px]"></div>
                 </TableCell>
                 <TableCell className="mb-2 capitalize">
                   {item.item_name}
                 </TableCell>
                 <TableCell>
-                  <div className="border-[1px] h-[25px]"></div>
-                </TableCell>
-                <TableCell className="mx-2 text-center whitespace-nowrap text-md overflow-hidden text-ellipsis">
-                  <p className="mb-1">Category</p>
-                  <div className="flex items-center justify-center">
-                    <Layers3 className="text-gray-300 text-sm mr-2" />
-                    <p>{item.category_name}</p>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="border-[1px] h-[25px]"></div>
+                  <div className="border-[1px] w-[1px] h-[25px]"></div>
                 </TableCell>
                 <TableCell className="mx-2 w-[250px] text-xs">
                   {item.item_desc}
                 </TableCell>
                 <TableCell>
-                  <div className="border-[1px] h-[25px]"></div>
+                  <div className="border-[1px] w-[1px] h-[25px]"></div>
                 </TableCell>
                 <TableCell className="mx-2 text-center whitespace-nowrap text-md overflow-hidden text-ellipsis">
                   <p className="">Item Price</p>
@@ -320,7 +215,7 @@ const Items = () => {
                   </p>
                 </TableCell>
                 <TableCell>
-                  <div className="border-[1px] h-[25px]"></div>
+                  <div className="border-[1px] w-[1px] h-[25px]"></div>
                 </TableCell>
                 <TableCell className="mx-2 text-center whitespace-nowrap text-md overflow-hidden text-ellipsis">
                   <p className="mb-1">Stock</p>
@@ -330,7 +225,7 @@ const Items = () => {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="border-[1px] h-[25px]"></div>
+                  <div className="border-[1px] w-[1px] h-[25px]"></div>
                 </TableCell>
                 <TableCell className="mx-2">
                   {item.item_status ? (
@@ -342,19 +237,18 @@ const Items = () => {
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="border-[1px] h-[25px]"></div>
+                  <div className="border-[1px] w-[1px] h-[25px]"></div>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-center items-center">
                     <Dialog
                       onOpenChange={(open) => {
-                        setIsDialogOpen(open);
                         if (open) {
                           updateFormWithItem(item);
                         }
                       }}
                     >
-                      <DialogTrigger asChild>
+                      <DialogTrigger>
                         <PenLine className="hover:text-primary hover:scale-90 cursor-pointer" />
                       </DialogTrigger>
                       <DialogContent>
@@ -384,7 +278,6 @@ const Items = () => {
                                 {form.formState.errors.root.message}
                               </div>
                             )}
-
                             <FormField
                               control={form.control}
                               name="itemName"
@@ -399,7 +292,7 @@ const Items = () => {
                                         fieldState.error ? "border-red-500" : ""
                                       }
                                       aria-invalid={fieldState.invalid}
-                                      onBlur={(e) => {
+                                      onBlur={() => {
                                         field.onBlur();
                                         // Trigger validation on blur
                                         form.trigger("itemName");
@@ -424,7 +317,7 @@ const Items = () => {
                                         fieldState.error ? "border-red-500" : ""
                                       }
                                       aria-invalid={fieldState.invalid}
-                                      onBlur={(e) => {
+                                      onBlur={() => {
                                         field.onBlur();
                                         // Trigger validation on blur
                                         form.trigger("imageLink");
@@ -460,37 +353,6 @@ const Items = () => {
                                 </FormItem>
                               )}
                             />
-                            <FormField
-                              control={form.control}
-                              name="itemCategory"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Category</FormLabel>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Select a category" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {categories.map((category) => (
-                                        <SelectItem
-                                          key={category.category_id}
-                                          value={category.category_name}
-                                        >
-                                          {category.category_name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
                             <div className="flex gap-3">
                               <FormField
                                 control={form.control}
@@ -641,7 +503,6 @@ const Items = () => {
                                   </FormItem>
                                 )}
                               />
-
                               <FormField
                                 control={form.control}
                                 name="itemAvail"
@@ -659,7 +520,6 @@ const Items = () => {
                                 )}
                               />
                             </div>
-
                             <DialogFooter>
                               <Button
                                 type="submit"
@@ -713,12 +573,16 @@ const Items = () => {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center">
+                No items available in this category.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
-};
-
-export default Items;
+}
