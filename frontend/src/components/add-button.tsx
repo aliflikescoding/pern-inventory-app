@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Plus } from "lucide-react"
-import Link from "next/link"
+import * as React from "react";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 export function AddButton() {
   return (
@@ -22,17 +22,17 @@ export function AddButton() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem>
-          <Link href="/newcategory">
+        <Link href="/newcategory">
+          <DropdownMenuItem className="cursor-pointer">
             New Category
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem >
+          </DropdownMenuItem>
+        </Link>
         <Link href="/newitem">
+          <DropdownMenuItem className="cursor-pointer">
             New Item
-          </Link>
-        </DropdownMenuItem>
+          </DropdownMenuItem>
+        </Link>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
