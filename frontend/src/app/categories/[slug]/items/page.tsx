@@ -51,6 +51,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import BarItemPrice from "@/components/bar-item-price";
+import AvailDonutChart from "@/components/avail-donut-chart";
+import BarAllItemsOne from "@/components/bar-all-items-one";
 
 const formSchema = z.object({
   itemName: z
@@ -77,6 +80,84 @@ const formSchema = z.object({
   itemAvail: z.boolean(),
 });
 
+const processDataPie = (items: Item[]): ProcessedItem[] => {
+  // Initialize an empty object to store the aggregated data
+  const categoryCount: {
+    [key: string]: { id: number; category_name: string; total: number };
+  } = {};
+
+  // Loop through all items and group them by category
+  items.forEach((item) => {
+    const { category_name } = item;
+    if (!categoryCount[category_name]) {
+      // If category doesn't exist, create it and set total to 1
+      categoryCount[category_name] = {
+        id: Object.keys(categoryCount).length,
+        category_name,
+        total: 1,
+      };
+    } else {
+      // Otherwise, just increment the total count
+      categoryCount[category_name].total += 1;
+    }
+  });
+
+  // Bright colors object
+  const colors = {
+    brightColors: [
+      "#1E90FF", // Dodger Blue
+      "#0000FF", // Blue
+      "#4682B4", // Steel Blue
+      "#6A5ACD", // Slate Blue
+      "#8A2BE2", // Blue Violet
+      "#FF00FF", // Magenta
+      "#8B008B", // Dark Magenta
+      "#DDA0DD", // Plum
+      "#FF1493", // Deep Pink
+      "#FF69B4", // Hot Pink
+    ],
+  };
+
+  // Convert the aggregated object into an array
+  const result = Object.values(categoryCount);
+
+  // Return both the processed data and the brightColors as a new property in the object array
+  return result.map((item, index) => ({
+    ...item,
+    color: colors.brightColors[index % colors.brightColors.length], // Assign a color based on the index
+  }));
+};
+
+const processDataBar1 = (items: Item[]) => {
+  return items.map((item) => ({
+    item_name: item.item_name,
+    item_stock: item.item_stock,
+  }));
+};
+
+const processDataBar2 = (items: Item[]) => {
+  return items.map((item) => ({
+    item_name: item.item_name,
+    item_price: item.item_price,
+  }));
+};
+
+const getAvailabilitySummary = (items: typeof allItems) => {
+  const summary = items.reduce(
+    (acc, item) => {
+      if (item.item_status) {
+        acc.totalAvailable += 1;
+      } else {
+        acc.totalNotAvailable += 1;
+      }
+      return acc;
+    },
+    { totalAvailable: 0, totalNotAvailable: 0 }
+  );
+
+  return summary;
+};
+
 export default function Page({
   params,
 }: {
@@ -96,6 +177,10 @@ export default function Page({
   const [formError, setFormError] = React.useState<string | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
   const [categorizedItems, setCategorizedItems] = useState<Item[]>([]);
+  const dataPie = processDataPie(categorizedItems);
+  const barData1 = processDataBar1(categorizedItems);
+  const dataPieAvail = getAvailabilitySummary(categorizedItems);
+  const barData2 = processDataBar2(categorizedItems);
 
   // Function to filter items by category_id
   function getItemsByCategory(category_id: number): Item[] {
@@ -178,6 +263,16 @@ export default function Page({
       <h1 className="text-4xl capitalize font-light text-center">
         Items in {slug ? getCategoryName(parseInt(slug)) : "Unknown"}
       </h1>
+      <div className="flex justify-around my-3">
+        <BarItemPrice data={barData2} />
+        <AvailDonutChart
+          totalAvailable={dataPieAvail.totalAvailable}
+          totalNotAvailable={dataPieAvail.totalNotAvailable}
+        />
+      </div>
+      <div className="flex justify-around my-3">
+          <BarAllItemsOne data={barData1} />
+        </div>
       <Table>
         <TableBody>
           {categorizedItems.length > 0 ? (
