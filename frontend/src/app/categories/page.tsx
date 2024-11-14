@@ -212,7 +212,7 @@ export default function Categories() {
                                       fieldState.error ? "border-red-500" : ""
                                     }
                                     aria-invalid={fieldState.invalid}
-                                    onBlur={(ellipsis) => {
+                                    onBlur={() => {
                                       field.onBlur();
                                       // Trigger validation on blur
                                       form.trigger("categoryName");
@@ -237,7 +237,7 @@ export default function Categories() {
                                       fieldState.error ? "border-red-500" : ""
                                     }
                                     aria-invalid={fieldState.invalid}
-                                    onBlur={(e) => {
+                                    onBlur={() => {
                                       field.onBlur();
                                       // Trigger validation on blur
                                       form.trigger("imageLink");
@@ -285,9 +285,11 @@ export default function Categories() {
                             ?
                           </AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete {category.category_name} and remove your data
-                            from our servers.
+                            <p className="text-xl my-2">
+                              This action cannot be undone. This will
+                              permanently delete {category.category_name} and
+                              all of {category.category_name}&apos; items.
+                            </p>
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
