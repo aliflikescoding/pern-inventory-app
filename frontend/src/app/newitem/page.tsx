@@ -1,13 +1,15 @@
 "use client";
 
+// react imports
 import React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+// zod imports
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+// shadcn ui components imports
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -25,7 +27,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+// icon imports
+import { Plus, Minus } from "lucide-react";
+// data imports
 import { categories } from "../data";
+
+// form schema
 const formSchema = z.object({
   itemName: z
     .string()
@@ -53,8 +60,10 @@ const formSchema = z.object({
 });
 
 const NewItem = () => {
+  // form states
   const [formError, setFormError] = React.useState<string | null>(null);
 
+  // initialize form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -68,6 +77,8 @@ const NewItem = () => {
     },
   });
 
+  // ASYNC FUNCTIONS
+  // add new item form
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // Validate the form data
