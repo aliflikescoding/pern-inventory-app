@@ -1,11 +1,16 @@
 "use client";
 
+// react imports
 import React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Card } from "@/components/ui/card";
+// next js imports
 import Image from "next/image";
+import Link from "next/link";
+// zod imports
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+// shadcn ui imports
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,12 +32,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { PenLine, Trash } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
-import CategoryTotalCard from "@/components/category-total-card";
-import { categories } from "@/app/data.js";
 import {
   Form,
   FormControl,
@@ -41,7 +40,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+// custom components import
+import CategoryTotalCard from "@/components/category-total-card";
+// icon imports
+import { PenLine, Trash } from "lucide-react";
+// data imports
+import { categories } from "@/app/data.js";
 
+// form schema
 const formSchema = z.object({
   categoryName: z
     .string()
@@ -53,6 +60,7 @@ const formSchema = z.object({
     .min(1, "Image link is required"),
 });
 
+// category interface
 interface Category {
   category_id: number;
   category_name: string;
@@ -60,9 +68,11 @@ interface Category {
 }
 
 export default function Categories() {
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  // form error state
   const [formError, setFormError] = React.useState<string | null>(null);
 
+  // FORM FUNCTIONS
+  // initialize form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -71,6 +81,16 @@ export default function Categories() {
     },
   });
 
+  // set form to data
+  const updateFormWithCategory = (category: Category) => {
+    form.reset({
+      categoryName: category.category_name,
+      imageLink: category.category_image_link,
+    });
+  };
+
+  // ASYNC FUNCTIONS
+  // edit categories
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // Validate the form data
@@ -81,9 +101,6 @@ export default function Categories() {
 
       // Clear any previous errors
       setFormError(null);
-
-      // Close the dialog
-      setIsDialogOpen(false);
 
       // Reset form
       form.reset();
@@ -99,6 +116,7 @@ export default function Categories() {
     }
   }
 
+  // delete form
   async function onDeleteSubmit(id: number) {
     try {
       console.log(`Deleting the item: ${id}`);
@@ -106,13 +124,6 @@ export default function Categories() {
       console.error(err);
     }
   }
-
-  const updateFormWithCategory = (category: Category) => {
-    form.reset({
-      categoryName: category.category_name,
-      imageLink: category.category_image_link,
-    });
-  };
 
   return (
     <div>
@@ -151,7 +162,6 @@ export default function Categories() {
                 <div className="flex gap-2">
                   <Dialog
                     onOpenChange={(open) => {
-                      setIsDialogOpen(open);
                       if (open) {
                         updateFormWithCategory(category);
                       }
