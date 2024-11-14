@@ -1,14 +1,15 @@
 "use client";
 
+// react imports
 import React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+// zod imports
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+// shadcn UI imports
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -17,6 +18,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+// icon imports
+import { Plus } from "lucide-react";
+
+// form schema
 const formSchema = z.object({
   categoryName: z
     .string()
@@ -29,8 +34,11 @@ const formSchema = z.object({
 });
 
 const NewCategory = () => {
+  // form error state
   const [formError, setFormError] = React.useState<string | null>(null);
 
+  // FORM FUNCTIONS
+  // set form to form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,6 +47,8 @@ const NewCategory = () => {
     },
   });
 
+  // ASYNC FUNCTIONS
+  // add new category
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // Validate the form data
@@ -73,6 +83,16 @@ const NewCategory = () => {
         <CardContent className="text-foreground">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
+              {formError && (
+                <div className="text-red-500 text-sm p-2 bg-red-50 rounded">
+                  {formError}
+                </div>
+              )}
+              {form.formState.errors.root && (
+                <div className="text-red-500 text-sm p-2 bg-red-50 rounded">
+                  {form.formState.errors.root.message}
+                </div>
+              )}
               <FormField
                 control={form.control}
                 name="categoryName"
@@ -85,7 +105,7 @@ const NewCategory = () => {
                         {...field}
                         className={fieldState.error ? "border-red-500" : ""}
                         aria-invalid={fieldState.invalid}
-                        onBlur={(ellipsis) => {
+                        onBlur={() => {
                           field.onBlur();
                           // Trigger validation on blur
                           form.trigger("categoryName");
@@ -108,7 +128,7 @@ const NewCategory = () => {
                         {...field}
                         className={fieldState.error ? "border-red-500" : ""}
                         aria-invalid={fieldState.invalid}
-                        onBlur={(e) => {
+                        onBlur={() => {
                           field.onBlur();
                           // Trigger validation on blur
                           form.trigger("imageLink");
