@@ -1,9 +1,14 @@
 "use client";
 
+// react imports
 import React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+// next js imports
+import Image from "next/image";
+// zod imports
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+// ShadCN UI imports
 import {
   Table,
   TableBody,
@@ -20,14 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { allItems } from "@/app/data.js";
-import { PenLine, Box, Layers3, Trash, Plus, Minus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
-import Link from "next/link";
-import BarAllItemsOne from "@/components/bar-all-items-one";
-import AllItemsDonutChart from "@/components/all-items-donut-chart";
-import AvailDonutChart from "@/components/avail-donut-chart";
-import BarItemPrice from "@/components/bar-item-price";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -39,7 +37,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+// custom components imports
+import BarAllItemsOne from "@/components/bar-all-items-one";
+import AllItemsDonutChart from "@/components/all-items-donut-chart";
+import AvailDonutChart from "@/components/avail-donut-chart";
+import BarItemPrice from "@/components/bar-item-price";
+// data imports
 import { categories } from "../data";
+// icon imports
+import { PenLine, Box, Layers3, Trash, Plus, Minus } from "lucide-react";
 
 // Form Schema
 const formSchema = z.object({
@@ -68,7 +94,7 @@ const formSchema = z.object({
   itemAvail: z.boolean(),
 });
 
-// Rest of your interface definitions and data processing functions remain the same
+// Data interfaces
 interface Item {
   item_id: number;
   item_name: string;
@@ -81,34 +107,13 @@ interface Item {
   category_name: string;
 }
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-
 interface ProcessedItem {
   id: number;
   category_name: string;
   total: number;
 }
 
+// Data processing functions
 const processDataPie = (items: Item[]): ProcessedItem[] => {
   // Initialize an empty object to store the aggregated data
   const categoryCount: {
@@ -188,13 +193,17 @@ const getAvailabilitySummary = (items: typeof allItems) => {
 };
 
 const Items = () => {
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  /* STATES */
+  // data states
   const dataPie = processDataPie(allItems);
   const barData1 = processDataBar1(allItems);
   const dataPieAvail = getAvailabilitySummary(allItems);
   const barData2 = processDataBar2(allItems);
+  // form error state
   const [formError, setFormError] = React.useState<string | null>(null);
 
+  // FORM
+  // make inital form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -208,6 +217,21 @@ const Items = () => {
     },
   });
 
+  // update forms with items
+  const updateFormWithItem = (item: Item) => {
+    form.reset({
+      itemName: item.item_name,
+      imageLink: item.item_image_link,
+      itemDesc: item.item_desc,
+      itemCategory: item.category_name,
+      price: item.item_price,
+      stock: item.item_stock,
+      itemAvail: item.item_status,
+    });
+  };
+
+  // ASYNC FUNCTIONS
+  // edit item
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // Validate the form data
@@ -218,9 +242,6 @@ const Items = () => {
 
       // Clear any previous errors
       setFormError(null);
-
-      // Close the dialog
-      setIsDialogOpen(false);
 
       // Reset form
       form.reset();
@@ -236,6 +257,7 @@ const Items = () => {
     }
   }
 
+  // delete item
   async function onDeleteSubmit(id: number) {
     try {
       console.log(`Deleting the item: ${id}`);
@@ -243,18 +265,6 @@ const Items = () => {
       console.error(err);
     }
   }
-
-  const updateFormWithItem = (item: Item) => {
-    form.reset({
-      itemName: item.item_name,
-      imageLink: item.item_image_link,
-      itemDesc: item.item_desc,
-      itemCategory: item.category_name,
-      price: item.item_price,
-      stock: item.item_stock,
-      itemAvail: item.item_status,
-    });
-  };
 
   return (
     <div className="flex">
@@ -348,7 +358,6 @@ const Items = () => {
                   <div className="flex justify-center items-center">
                     <Dialog
                       onOpenChange={(open) => {
-                        setIsDialogOpen(open);
                         if (open) {
                           updateFormWithItem(item);
                         }
@@ -399,7 +408,7 @@ const Items = () => {
                                         fieldState.error ? "border-red-500" : ""
                                       }
                                       aria-invalid={fieldState.invalid}
-                                      onBlur={(e) => {
+                                      onBlur={() => {
                                         field.onBlur();
                                         // Trigger validation on blur
                                         form.trigger("itemName");
@@ -424,7 +433,7 @@ const Items = () => {
                                         fieldState.error ? "border-red-500" : ""
                                       }
                                       aria-invalid={fieldState.invalid}
-                                      onBlur={(e) => {
+                                      onBlur={() => {
                                         field.onBlur();
                                         // Trigger validation on blur
                                         form.trigger("imageLink");
