@@ -1,27 +1,19 @@
 "use client";
 
+//react imports
 import React, { useEffect, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+// next js imports
+import Image from "next/image";
+// data imports
 import { items, categories } from "@/app/data";
-interface Item {
-  item_id: number;
-  item_name: string;
-  item_desc: string;
-  item_price: number;
-  item_stock: number;
-  item_status: boolean;
-  item_image_link: string;
-  category_id: number;
-}
+// zod
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+// shadCN UI imports
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import Image from "next/image";
-import { PenLine, Box, Trash, Plus, Minus } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -51,10 +43,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+// custom components import
 import BarItemPrice from "@/components/bar-item-price";
 import AvailDonutChart from "@/components/avail-donut-chart";
 import BarAllItemsOne from "@/components/bar-all-items-one";
+// icon imports
+import { PenLine, Box, Trash, Plus, Minus } from "lucide-react";
 
+// form schema
 const formSchema = z.object({
   itemName: z
     .string()
@@ -80,54 +78,19 @@ const formSchema = z.object({
   itemAvail: z.boolean(),
 });
 
-const processDataPie = (items: Item[]): ProcessedItem[] => {
-  // Initialize an empty object to store the aggregated data
-  const categoryCount: {
-    [key: string]: { id: number; category_name: string; total: number };
-  } = {};
+// items typscript interface
+interface Item {
+  item_id: number;
+  item_name: string;
+  item_desc: string;
+  item_price: number;
+  item_stock: number;
+  item_status: boolean;
+  item_image_link: string;
+  category_id: number;
+}
 
-  // Loop through all items and group them by category
-  items.forEach((item) => {
-    const { category_name } = item;
-    if (!categoryCount[category_name]) {
-      // If category doesn't exist, create it and set total to 1
-      categoryCount[category_name] = {
-        id: Object.keys(categoryCount).length,
-        category_name,
-        total: 1,
-      };
-    } else {
-      // Otherwise, just increment the total count
-      categoryCount[category_name].total += 1;
-    }
-  });
-
-  // Bright colors object
-  const colors = {
-    brightColors: [
-      "#1E90FF", // Dodger Blue
-      "#0000FF", // Blue
-      "#4682B4", // Steel Blue
-      "#6A5ACD", // Slate Blue
-      "#8A2BE2", // Blue Violet
-      "#FF00FF", // Magenta
-      "#8B008B", // Dark Magenta
-      "#DDA0DD", // Plum
-      "#FF1493", // Deep Pink
-      "#FF69B4", // Hot Pink
-    ],
-  };
-
-  // Convert the aggregated object into an array
-  const result = Object.values(categoryCount);
-
-  // Return both the processed data and the brightColors as a new property in the object array
-  return result.map((item, index) => ({
-    ...item,
-    color: colors.brightColors[index % colors.brightColors.length], // Assign a color based on the index
-  }));
-};
-
+// chart data processing functions
 const processDataBar1 = (items: Item[]) => {
   return items.map((item) => ({
     item_name: item.item_name,
@@ -163,6 +126,8 @@ export default function Page({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  /* FORM FUNCTIONS */
+  // define forms
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -174,46 +139,27 @@ export default function Page({
       itemAvail: false,
     },
   });
+  // update the form with the current items
+  const updateFormWithItem = (item: Item) => {
+    form.reset({
+      itemName: item.item_name,
+      imageLink: item.item_image_link,
+      itemDesc: item.item_desc,
+      price: item.item_price,
+      stock: item.item_stock,
+      itemAvail: item.item_status,
+    });
+  };
+  // states
   const [formError, setFormError] = React.useState<string | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
   const [categorizedItems, setCategorizedItems] = useState<Item[]>([]);
-  const dataPie = processDataPie(categorizedItems);
   const barData1 = processDataBar1(categorizedItems);
   const dataPieAvail = getAvailabilitySummary(categorizedItems);
   const barData2 = processDataBar2(categorizedItems);
 
-  // Function to filter items by category_id
-  function getItemsByCategory(category_id: number): Item[] {
-    return items.filter((item) => item.category_id === category_id);
-  }
-
-  function getCategoryName(category_id: number): string | null {
-    const category = categories.find((cat) => cat.category_id === category_id);
-    return category ? category.category_name : null;
-  }
-
-  // Unwrap the Promise for params using React.use()
-  const unwrappedParams = React.use(params);
-
-  useEffect(() => {
-    if (unwrappedParams?.slug) {
-      setSlug(unwrappedParams.slug);
-    }
-  }, [unwrappedParams]);
-
-  useEffect(() => {
-    console.log(categorizedItems);
-  }, [categorizedItems]);
-
-  useEffect(() => {
-    // Only filter items once the slug is set
-    if (slug !== null) {
-      const categoryId = parseInt(slug);
-      const itemsByCategory = getItemsByCategory(categoryId);
-      setCategorizedItems(itemsByCategory);
-    }
-  }, [slug]);
-
+  // ASYNC FUNCTIONS
+  // delete item function
   async function onDeleteSubmit(id: number) {
     try {
       console.log(`Deleting the item: ${id}`);
@@ -222,6 +168,7 @@ export default function Page({
     }
   }
 
+  // edit item function
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // Validate the form data
@@ -247,16 +194,34 @@ export default function Page({
     }
   }
 
-  const updateFormWithItem = (item: Item) => {
-    form.reset({
-      itemName: item.item_name,
-      imageLink: item.item_image_link,
-      itemDesc: item.item_desc,
-      price: item.item_price,
-      stock: item.item_stock,
-      itemAvail: item.item_status,
-    });
-  };
+  // filter dummy data items javascript function
+  function getItemsByCategory(category_id: number): Item[] {
+    return items.filter((item) => item.category_id === category_id);
+  }
+
+  // filter dummy data category to get category name
+  function getCategoryName(category_id: number): string | null {
+    const category = categories.find((cat) => cat.category_id === category_id);
+    return category ? category.category_name : null;
+  }
+
+  // Unwrap the Promise for params using React.use()
+  const unwrappedParams = React.use(params);
+
+  useEffect(() => {
+    if (unwrappedParams?.slug) {
+      setSlug(unwrappedParams.slug);
+    }
+  }, [unwrappedParams]);
+
+  useEffect(() => {
+    // Only filter items once the slug is set
+    if (slug !== null) {
+      const categoryId = parseInt(slug);
+      const itemsByCategory = getItemsByCategory(categoryId);
+      setCategorizedItems(itemsByCategory);
+    }
+  }, [slug]);
 
   return (
     <div>
