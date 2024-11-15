@@ -48,7 +48,7 @@ router.put("/items/:id", updateAnItem);
 // Delete items
 router.delete("/items/:id", deleteItem);
 
-// Get items with name
-router.get("/items/category-name", getAllItemsWithCatName);
+// Get items with name category
+router.get("/allitems", getAllItemsWithCatName);
 
 export default router;

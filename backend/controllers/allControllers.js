@@ -123,7 +123,7 @@ export const getAnItem = async (req, res, next) => {
     const item = await getIdItem(id);
     res.json(item.rows[0]);
   } catch (err) {
-    console.err(err);
+    console.error(err);
   }
 };
 
