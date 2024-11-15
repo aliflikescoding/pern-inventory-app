@@ -23,11 +23,11 @@ import { Plus } from "lucide-react";
 
 // form schema
 const formSchema = z.object({
-  categoryName: z
+  category_name: z
     .string()
     .min(1, "Category name is required")
     .max(50, "Category name must be less than 50 characters"),
-  imageLink: z
+  category_image_link: z
     .string()
     .url("Must be a valid URL")
     .min(1, "Image link is required"),
@@ -36,41 +36,56 @@ const formSchema = z.object({
 const NewCategory = () => {
   // form error state
   const [formError, setFormError] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // FORM FUNCTIONS
   // set form to form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      categoryName: "",
-      imageLink: "",
+      category_name: "",
+      category_image_link: "",
     },
   });
 
   // ASYNC FUNCTIONS
   // add new category
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
     try {
-      // Validate the form data
       const validatedData = formSchema.parse(values);
 
-      // Handle the form submission
-      console.log(validatedData);
+      const response = await fetch("/api/categories", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(validatedData),
+      });
 
-      // Clear any previous errors
-      setFormError(null);
+      const data = await response.json();
 
-      // Reset form
-      form.reset();
+      if (response.ok) {
+        setFormError(null);
+        form.reset();
+        alert("Category created successfully!");
+      } else {
+        throw new Error(data.message || "Failed to create category");
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Handle Zod validation errors
         const errorMessages = error.errors.map((err) => err.message).join(", ");
         setFormError(errorMessages);
       } else {
-        // Handle other errors
-        setFormError("An unexpected error occurred");
+        setFormError(
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred"
+        );
       }
+      console.error("Form submission error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -95,7 +110,7 @@ const NewCategory = () => {
               )}
               <FormField
                 control={form.control}
-                name="categoryName"
+                name="category_name"
                 render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Name</FormLabel>
@@ -108,7 +123,7 @@ const NewCategory = () => {
                         onBlur={() => {
                           field.onBlur();
                           // Trigger validation on blur
-                          form.trigger("categoryName");
+                          form.trigger("category_name");
                         }}
                       />
                     </FormControl>
@@ -118,7 +133,7 @@ const NewCategory = () => {
               />
               <FormField
                 control={form.control}
-                name="imageLink"
+                name="category_image_link"
                 render={({ field, fieldState }) => (
                   <FormItem className="mt-2">
                     <FormLabel>Image Link</FormLabel>
@@ -131,7 +146,7 @@ const NewCategory = () => {
                         onBlur={() => {
                           field.onBlur();
                           // Trigger validation on blur
-                          form.trigger("imageLink");
+                          form.trigger("category_image_link");
                         }}
                       />
                     </FormControl>
@@ -143,9 +158,15 @@ const NewCategory = () => {
                 <Button
                   type="submit"
                   className="mt-4"
-                  disabled={!form.formState.isValid}
+                  disabled={!form.formState.isValid || isSubmitting}
                 >
-                  <Plus /> Create New Category
+                  {isSubmitting ? (
+                    <>Loading...</>
+                  ) : (
+                    <>
+                      <Plus /> Create New Category
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
