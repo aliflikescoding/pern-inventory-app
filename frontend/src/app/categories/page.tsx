@@ -1,7 +1,7 @@
 "use client";
 
 // react imports
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 // next js imports
 import Image from "next/image";
@@ -45,9 +45,6 @@ import { Input } from "@/components/ui/input";
 import CategoryTotalCard from "@/components/category-total-card";
 // icon imports
 import { PenLine, Trash } from "lucide-react";
-// data imports
-import { categories } from "@/app/data.js";
-
 // form schema
 const formSchema = z.object({
   categoryName: z
@@ -70,6 +67,8 @@ interface Category {
 export default function Categories() {
   // form error state
   const [formError, setFormError] = React.useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   // FORM FUNCTIONS
   // initialize form
@@ -124,6 +123,32 @@ export default function Categories() {
       console.error(err);
     }
   }
+
+  useEffect(() => {
+    async function getCategories() {
+      try {
+        const res = await fetch("/api/category", {
+          // Add cache settings if needed
+          next: { revalidate: 60 }, // Cache for 60 seconds
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setError("Failed to fetch categories");
+      }
+    }
+
+    getCategories();
+  }, []); // Add empty dependency array to prevent continuous re-fetching
+
+  if (error) return <div>Error: {error}</div>;
+  if (!categories) return <div>Loading...</div>;
 
   return (
     <div>
