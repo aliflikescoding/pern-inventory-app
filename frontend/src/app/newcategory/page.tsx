@@ -55,7 +55,7 @@ const NewCategory = () => {
     try {
       const validatedData = formSchema.parse(values);
 
-      const response = await fetch("/api/categories", {
+      const response = await fetch("/api/newCategory", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
