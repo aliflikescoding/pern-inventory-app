@@ -29,32 +29,38 @@ import {
 } from "@/components/ui/form";
 // icon imports
 import { Plus, Minus } from "lucide-react";
+//category typescript interface
+interface Category {
+  category_id: number;
+  category_name: string;
+  category_image_link: string;
+}
 
 // form schema
 const formSchema = z.object({
-  itemName: z
+  item_name: z
     .string()
     .min(1, "Item name is required")
     .max(50, "Item name must be less than 50 characters"),
-  imageLink: z
+  item_image_link: z
     .string()
     .url("Must be a valid URL")
     .min(1, "Image link is required"),
-  itemDesc: z
+  item_desc: z
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description must be less than 500 characters"),
-  itemCategory: z.string().min(1, "Category is required"),
-  price: z
+  category_id: z.number(), // Changed to number type for category_id
+  item_price: z
     .number()
-    .min(0.01, "Price must be greater than 0")
-    .max(999999.99, "Price must be less than 1,000,000"),
-  stock: z
+    .min(0.01, "item_price must be greater than 0")
+    .max(999999.99, "item_price must be less than 1,000,000"),
+  item_stock: z
     .number()
-    .int("Stock must be a whole number")
-    .min(0, "Stock cannot be negative")
-    .max(999999, "Stock must be less than 1,000,000"),
-  itemAvail: z.boolean(),
+    .int("item_stock must be a whole number")
+    .min(0, "item_stock cannot be negative")
+    .max(999999, "item_stock must be less than 1,000,000"),
+  item_status: z.boolean(),
 });
 
 const NewItem = () => {
@@ -67,13 +73,13 @@ const NewItem = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      itemName: "",
-      imageLink: "",
-      itemDesc: "",
-      itemCategory: "",
-      price: 1,
-      stock: 1,
-      itemAvail: false,
+      item_name: "",
+      item_image_link: "",
+      item_desc: "",
+      category_id: 0,
+      item_price: 1,
+      item_stock: 1,
+      item_status: false,
     },
   });
 
@@ -152,7 +158,7 @@ const NewItem = () => {
 
               <FormField
                 control={form.control}
-                name="itemName"
+                name="item_name"
                 render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Name</FormLabel>
@@ -164,8 +170,7 @@ const NewItem = () => {
                         aria-invalid={fieldState.invalid}
                         onBlur={() => {
                           field.onBlur();
-                          // Trigger validation on blur
-                          form.trigger("itemName");
+                          form.trigger("item_name");
                         }}
                       />
                     </FormControl>
@@ -175,7 +180,7 @@ const NewItem = () => {
               />
               <FormField
                 control={form.control}
-                name="imageLink"
+                name="item_image_link"
                 render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Image Link</FormLabel>
@@ -187,8 +192,7 @@ const NewItem = () => {
                         aria-invalid={fieldState.invalid}
                         onBlur={() => {
                           field.onBlur();
-                          // Trigger validation on blur
-                          form.trigger("imageLink");
+                          form.trigger("item_image_link");
                         }}
                       />
                     </FormControl>
@@ -198,13 +202,13 @@ const NewItem = () => {
               />
               <FormField
                 control={form.control}
-                name="itemDesc"
+                name="item_desc"
                 render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea
-                        {...field} // Move this to the beginning
+                        {...field}
                         placeholder="Type your description here."
                         className={`resize-none ${
                           fieldState.error ? "border-red-500" : ""
@@ -212,35 +216,40 @@ const NewItem = () => {
                         aria-invalid={!!fieldState.error}
                         onBlur={() => {
                           field.onBlur();
-                          form.trigger("itemDesc");
+                          form.trigger("item_desc");
                         }}
                       />
                     </FormControl>
-                    {/* Add a min height to prevent layout shift */}
                     <FormMessage className="min-h-[20px]" />
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
-                name="itemCategory"
+                name="category_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
-                      value={form.watch("itemCategory")} // Dynamically watch the value
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={field.value.toString()}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
+                          <SelectValue placeholder="Select a category">
+                            {
+                              categories.find(
+                                (cat) => cat.category_id === field.value
+                              )?.category_name
+                            }
+                          </SelectValue>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {categories.map((category) => (
                           <SelectItem
                             key={category.category_id}
-                            value={category.category_name}
+                            value={category.category_id.toString()}
                           >
                             {category.category_name}
                           </SelectItem>
@@ -255,7 +264,7 @@ const NewItem = () => {
               <div className="flex gap-3">
                 <FormField
                   control={form.control}
-                  name="price"
+                  name="item_price"
                   render={({ field, fieldState }) => (
                     <FormItem>
                       <FormLabel>Price</FormLabel>
@@ -268,8 +277,7 @@ const NewItem = () => {
                             onClick={() => {
                               const newValue = Math.max(0.01, field.value - 1);
                               field.onChange(newValue);
-                              // Trigger validation after changing value
-                              form.trigger("price");
+                              form.trigger("item_price");
                             }}
                             className="h-10 w-10"
                           >
@@ -283,12 +291,11 @@ const NewItem = () => {
                               const value = parseFloat(e.target.value);
                               const newValue = isNaN(value) ? 0 : value;
                               field.onChange(newValue);
-                              // Trigger validation after changing value
-                              form.trigger("price");
+                              form.trigger("item_price");
                             }}
                             onBlur={() => {
                               field.onBlur();
-                              form.trigger("price");
+                              form.trigger("item_price");
                             }}
                             aria-invalid={!!fieldState.error}
                             className={`w-20 text-center ${
@@ -305,8 +312,7 @@ const NewItem = () => {
                                 field.value + 1
                               );
                               field.onChange(newValue);
-                              // Trigger validation after changing value
-                              form.trigger("price");
+                              form.trigger("item_price");
                             }}
                             className="h-10 w-10"
                           >
@@ -321,7 +327,7 @@ const NewItem = () => {
 
                 <FormField
                   control={form.control}
-                  name="stock"
+                  name="item_stock"
                   render={({ field, fieldState }) => (
                     <FormItem>
                       <FormLabel>Stock</FormLabel>
@@ -334,8 +340,7 @@ const NewItem = () => {
                             onClick={() => {
                               const newValue = Math.max(0, field.value - 1);
                               field.onChange(newValue);
-                              // Trigger validation after changing value
-                              form.trigger("stock");
+                              form.trigger("item_stock");
                             }}
                             className="h-10 w-10"
                           >
@@ -349,12 +354,11 @@ const NewItem = () => {
                               const value = parseInt(e.target.value);
                               const newValue = isNaN(value) ? 0 : value;
                               field.onChange(newValue);
-                              // Trigger validation after changing value
-                              form.trigger("stock");
+                              form.trigger("item_stock");
                             }}
                             onBlur={() => {
                               field.onBlur();
-                              form.trigger("stock");
+                              form.trigger("item_stock");
                             }}
                             aria-invalid={!!fieldState.error}
                             className={`w-20 text-center ${
@@ -371,8 +375,7 @@ const NewItem = () => {
                                 field.value + 1
                               );
                               field.onChange(newValue);
-                              // Trigger validation after changing value
-                              form.trigger("stock");
+                              form.trigger("item_stock");
                             }}
                             className="h-10 w-10"
                           >
@@ -387,7 +390,7 @@ const NewItem = () => {
 
                 <FormField
                   control={form.control}
-                  name="itemAvail"
+                  name="item_status"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Availability</FormLabel>
