@@ -91,13 +91,23 @@ const NewItem = () => {
       const validatedData = formSchema.parse(values);
 
       // Handle the form submission
-      console.log(validatedData);
+      const response = await fetch("/api/newItem", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(validatedData),
+      });
 
-      // Clear any previous errors
-      setFormError(null);
+      const data = await response.json();
 
-      // Reset form
-      form.reset();
+      if (response.ok) {
+        setFormError(null);
+        form.reset();
+        alert("Category created successfully!");
+      } else {
+        throw new Error(data.message || "Failed to create category");
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle Zod validation errors
