@@ -8,7 +8,7 @@ export async function GET() {
       throw new Error('API_BASE_URL is not defined in environment variables');
     }
 
-    const response = await fetch(`${apiBaseUrl}/categories`, {
+    const response = await fetch(`${apiBaseUrl}/allitems`, {
       headers: {
         'Content-Type': 'application/json',
       },

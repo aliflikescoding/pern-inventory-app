@@ -1,7 +1,7 @@
 "use client";
 
 // react imports
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 // next js imports
 import Image from "next/image";
@@ -24,7 +24,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { allItems } from "@/app/data.js";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -62,8 +61,6 @@ import BarAllItemsOne from "@/components/bar-all-items-one";
 import AllItemsDonutChart from "@/components/all-items-donut-chart";
 import AvailDonutChart from "@/components/avail-donut-chart";
 import BarItemPrice from "@/components/bar-item-price";
-// data imports
-import { categories } from "../data";
 // icon imports
 import { PenLine, Box, Layers3, Trash, Plus, Minus } from "lucide-react";
 
@@ -111,6 +108,12 @@ interface ProcessedItem {
   id: number;
   category_name: string;
   total: number;
+}
+
+interface Category {
+  category_id: number;
+  category_name: string;
+  category_image_link: string;
 }
 
 // Data processing functions
@@ -195,6 +198,9 @@ const getAvailabilitySummary = (items: typeof allItems) => {
 const Items = () => {
   /* STATES */
   // data states
+  const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [allItems, setAllItems] = useState([]);
   const dataPie = processDataPie(allItems);
   const barData1 = processDataBar1(allItems);
   const dataPieAvail = getAvailabilitySummary(allItems);
@@ -265,6 +271,59 @@ const Items = () => {
       console.error(err);
     }
   }
+
+  useEffect(() => {
+    async function getCategories() {
+      try {
+        const res = await fetch("/api/category", {
+          // Add cache settings if needed
+          next: { revalidate: 60 }, // Cache for 60 seconds
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setError("Failed to fetch categories");
+      }
+    }
+
+    getCategories();
+  }, []);
+
+  useEffect(() => {
+    async function getAllItems() {
+      try {
+        const res = await fetch("/api/allItems", {
+          // Add cache settings if needed
+          next: { revalidate: 60 }, // Cache for 60 seconds
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setAllItems(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setError("Failed to fetch categories");
+      }
+    }
+
+    getAllItems();
+  }, []);
+
+  useEffect(() => {
+    console.log(allItems);
+  }, [allItems])
+
+  if (error) return <div>Error: {error}</div>;
+  if (!categories) return <div>Loading...</div>;
 
   return (
     <div className="flex">
