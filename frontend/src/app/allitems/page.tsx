@@ -266,9 +266,22 @@ const Items = () => {
   // delete item
   async function onDeleteSubmit(id: number) {
     try {
-      console.log(`Deleting the item: ${id}`);
+      const response = await fetch(`/api/deleteItem/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+        window.location.reload();
+      } else {
+        console.error(`Failed to delete item ${id}:`, data.error);
+        alert(data.error);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("An error occurred while deleting the item:", err);
+      alert("Failed to delete the category. Please try again.");
     }
   }
 
@@ -320,7 +333,7 @@ const Items = () => {
 
   useEffect(() => {
     console.log(allItems);
-  }, [allItems])
+  }, [allItems]);
 
   if (error) return <div>Error: {error}</div>;
   if (!categories) return <div>Loading...</div>;
