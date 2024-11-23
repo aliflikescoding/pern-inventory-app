@@ -5,8 +5,6 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 // next js imports
 import Image from "next/image";
-// data imports
-import { items, categories } from "@/app/data";
 // zod
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -90,6 +88,13 @@ interface Item {
   category_id: number;
 }
 
+// category typescript interface
+interface Category {
+  category_id: number;
+  category_name: string;
+  category_image_link: string;
+}
+
 // chart data processing functions
 const processDataBar1 = (items: Item[]) => {
   return items.map((item) => ({
@@ -105,7 +110,7 @@ const processDataBar2 = (items: Item[]) => {
   }));
 };
 
-const getAvailabilitySummary = (items: typeof allItems) => {
+const getAvailabilitySummary = (items: Item[]) => {
   const summary = items.reduce(
     (acc, item) => {
       if (item.item_status) {
@@ -154,6 +159,9 @@ export default function Page({
   const [formError, setFormError] = React.useState<string | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
   const [categorizedItems, setCategorizedItems] = useState<Item[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const barData1 = processDataBar1(categorizedItems);
   const dataPieAvail = getAvailabilitySummary(categorizedItems);
   const barData2 = processDataBar2(categorizedItems);
@@ -194,11 +202,6 @@ export default function Page({
     }
   }
 
-  // filter dummy data items javascript function
-  function getItemsByCategory(category_id: number): Item[] {
-    return items.filter((item) => item.category_id === category_id);
-  }
-
   // filter dummy data category to get category name
   function getCategoryName(category_id: number): string | null {
     const category = categories.find((cat) => cat.category_id === category_id);
@@ -215,13 +218,69 @@ export default function Page({
   }, [unwrappedParams]);
 
   useEffect(() => {
-    // Only filter items once the slug is set
-    if (slug !== null) {
-      const categoryId = parseInt(slug);
-      const itemsByCategory = getItemsByCategory(categoryId);
-      setCategorizedItems(itemsByCategory);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/categoryItem/${slug}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const result = await response.json();
+        
+        // Check if result is an array
+        if (!Array.isArray(result)) {
+          // If result is not an array but has a data property that is an array
+          if (result.data && Array.isArray(result.data)) {
+            setCategorizedItems(result.data);
+          } else {
+            // If we get an object or other non-array data, convert to array
+            const itemsArray = result ? [result] : [];
+            setCategorizedItems(itemsArray);
+          }
+        } else {
+          // If result is already an array, use it directly
+          setCategorizedItems(result);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch data");
+        setCategorizedItems([]); // Set to empty array on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) {
+      fetchData();
     }
   }, [slug]);
+
+
+  useEffect(() => {
+    async function getCategories() {
+      try {
+        const res = await fetch("/api/category", {
+          // Add cache settings if needed
+          next: { revalidate: 60 }, // Cache for 60 seconds
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setError("Failed to fetch categories");
+      }
+    }
+
+    getCategories();
+  }, []); // Add empty dependency array to prevent continuous re-fetching
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div>
