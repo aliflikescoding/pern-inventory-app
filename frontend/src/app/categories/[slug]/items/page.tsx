@@ -170,9 +170,22 @@ export default function Page({
   // delete item function
   async function onDeleteSubmit(id: number) {
     try {
-      console.log(`Deleting the item: ${id}`);
+      const response = await fetch(`/api/deleteItem/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+        window.location.reload();
+      } else {
+        console.error(`Failed to delete item ${id}:`, data.error);
+        alert(data.error);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("An error occurred while deleting the item:", err);
+      alert("Failed to delete the category. Please try again.");
     }
   }
 
@@ -226,7 +239,7 @@ export default function Page({
           throw new Error("Failed to fetch data");
         }
         const result = await response.json();
-        
+
         // Check if result is an array
         if (!Array.isArray(result)) {
           // If result is not an array but has a data property that is an array
@@ -254,7 +267,6 @@ export default function Page({
       fetchData();
     }
   }, [slug]);
-
 
   useEffect(() => {
     async function getCategories() {
@@ -295,8 +307,8 @@ export default function Page({
         />
       </div>
       <div className="flex justify-around my-3">
-          <BarAllItemsOne data={barData1} />
-        </div>
+        <BarAllItemsOne data={barData1} />
+      </div>
       <Table>
         <TableBody>
           {categorizedItems.length > 0 ? (

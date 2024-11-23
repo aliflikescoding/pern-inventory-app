@@ -1,31 +1,27 @@
 import { NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
 
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    // Extract the ID from the URL
     const id = Number(params.id);
 
     if (isNaN(id)) {
       return NextResponse.json(
-        { error: 'Invalid category ID' },
+        { error: 'Invalid item ID' },
         { status: 400 }
       );
     }
 
-    // Forward the delete request to your external API
-    const response = await fetch(`http://localhost:5000/categories/${id}`, {
+    const response = await fetch(`${process.env.API_BASE_URL}/items/${id}`, {
       method: 'DELETE',
     });
 
     if (!response.ok) {
-      // Handle different error status codes
       if (response.status === 404) {
         return NextResponse.json(
-          { error: 'Category not found' },
+          { error: 'item not found' },
           { status: 404 }
         );
       }
@@ -33,19 +29,19 @@ export async function DELETE(
       throw new Error(`API returned ${response.status}: ${response.statusText}`);
     }
 
-    // Revalidate the categories page to update the UI
-    revalidatePath('/categories');
-
-    // Return success response
+    // Return the deleted item ID in the response
     return NextResponse.json(
-      { message: 'Category deleted successfully' },
+      { 
+        message: 'item deleted successfully',
+        deletedId: id
+      },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error deleting category:', error);
+    console.error('Error deleting item:', error);
     
     return NextResponse.json(
-      { error: 'Failed to delete category' },
+      { error: 'Failed to delete item' },
       { status: 500 }
     );
   }
