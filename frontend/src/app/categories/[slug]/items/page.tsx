@@ -52,28 +52,29 @@ import { PenLine, Box, Trash, Plus, Minus } from "lucide-react";
 
 // form schema
 const formSchema = z.object({
-  itemName: z
+  item_id: z.number().optional(),
+  item_name: z
     .string()
     .min(1, "Item name is required")
     .max(50, "Item name must be less than 50 characters"),
-  imageLink: z
+  item_image_link: z
     .string()
     .url("Must be a valid URL")
     .min(1, "Image link is required"),
-  itemDesc: z
+  item_desc: z
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description must be less than 500 characters"),
-  price: z
+  item_price: z
     .number()
     .min(0.01, "Price must be greater than 0")
     .max(999999.99, "Price must be less than 1,000,000"),
-  stock: z
+  item_stock: z
     .number()
     .int("Stock must be a whole number")
     .min(0, "Stock cannot be negative")
     .max(999999, "Stock must be less than 1,000,000"),
-  itemAvail: z.boolean(),
+  item_status: z.boolean(),
 });
 
 // items typscript interface
@@ -136,23 +137,25 @@ export default function Page({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      itemName: "",
-      imageLink: "",
-      itemDesc: "",
-      price: 1,
-      stock: 1,
-      itemAvail: false,
+      item_id: undefined,
+      item_name: "",
+      item_image_link: "",
+      item_desc: "",
+      item_price: 1,
+      item_stock: 1,
+      item_status: false,
     },
   });
   // update the form with the current items
   const updateFormWithItem = (item: Item) => {
     form.reset({
-      itemName: item.item_name,
-      imageLink: item.item_image_link,
-      itemDesc: item.item_desc,
-      price: item.item_price,
-      stock: item.item_stock,
-      itemAvail: item.item_status,
+      item_id: item.item_id,
+      item_name: item.item_name,
+      item_image_link: item.item_image_link,
+      item_desc: item.item_desc,
+      item_price: item.item_price,
+      item_stock: item.item_stock,
+      item_status: item.item_status,
     });
   };
   // states
@@ -189,27 +192,38 @@ export default function Page({
     }
   }
 
-  // edit item function
+  // In your Page component, modify the onSubmit function:
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // Validate the form data
       const validatedData = formSchema.parse(values);
 
-      // Handle the form submission
-      console.log(validatedData);
+      const response = await fetch(
+        `/api/editCatItem/${validatedData.item_id}`, // Remove the leading 'api/' as it's already in the correct path
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(validatedData),
+        }
+      );
 
-      // Clear any previous errors
-      setFormError(null);
+      const data = await response.json();
 
-      // Reset form
-      form.reset();
+      if (response.ok) {
+        setFormError(null);
+        form.reset();
+        alert("Item updated successfully!");
+        window.location.reload();
+      } else {
+        throw new Error(data.message || "Failed to update item");
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Handle Zod validation errors
         const errorMessages = error.errors.map((err) => err.message).join(", ");
         setFormError(errorMessages);
       } else {
-        // Handle other errors
         setFormError("An unexpected error occurred");
       }
     }
@@ -411,7 +425,7 @@ export default function Page({
                             )}
                             <FormField
                               control={form.control}
-                              name="itemName"
+                              name="item_name"
                               render={({ field, fieldState }) => (
                                 <FormItem>
                                   <FormLabel>Name</FormLabel>
@@ -426,7 +440,7 @@ export default function Page({
                                       onBlur={() => {
                                         field.onBlur();
                                         // Trigger validation on blur
-                                        form.trigger("itemName");
+                                        form.trigger("item_name");
                                       }}
                                     />
                                   </FormControl>
@@ -436,7 +450,7 @@ export default function Page({
                             />
                             <FormField
                               control={form.control}
-                              name="imageLink"
+                              name="item_image_link"
                               render={({ field, fieldState }) => (
                                 <FormItem>
                                   <FormLabel>Image Link</FormLabel>
@@ -451,7 +465,7 @@ export default function Page({
                                       onBlur={() => {
                                         field.onBlur();
                                         // Trigger validation on blur
-                                        form.trigger("imageLink");
+                                        form.trigger("item_image_link");
                                       }}
                                     />
                                   </FormControl>
@@ -461,7 +475,7 @@ export default function Page({
                             />
                             <FormField
                               control={form.control}
-                              name="itemDesc"
+                              name="item_desc"
                               render={({ field, fieldState }) => (
                                 <FormItem>
                                   <FormLabel>Description</FormLabel>
@@ -475,7 +489,7 @@ export default function Page({
                                       aria-invalid={!!fieldState.error}
                                       onBlur={() => {
                                         field.onBlur();
-                                        form.trigger("itemDesc");
+                                        form.trigger("item_desc");
                                       }}
                                     />
                                   </FormControl>
@@ -487,7 +501,7 @@ export default function Page({
                             <div className="flex gap-3">
                               <FormField
                                 control={form.control}
-                                name="price"
+                                name="item_price"
                                 render={({ field, fieldState }) => (
                                   <FormItem>
                                     <FormLabel>Price</FormLabel>
@@ -504,7 +518,7 @@ export default function Page({
                                             );
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("price");
+                                            form.trigger("item_price");
                                           }}
                                           className="h-10 w-10"
                                         >
@@ -523,11 +537,11 @@ export default function Page({
                                               : value;
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("price");
+                                            form.trigger("item_price");
                                           }}
                                           onBlur={() => {
                                             field.onBlur();
-                                            form.trigger("price");
+                                            form.trigger("item_price");
                                           }}
                                           aria-invalid={!!fieldState.error}
                                           className={`w-20 text-center ${
@@ -547,7 +561,7 @@ export default function Page({
                                             );
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("price");
+                                            form.trigger("item_price");
                                           }}
                                           className="h-10 w-10"
                                         >
@@ -562,7 +576,7 @@ export default function Page({
 
                               <FormField
                                 control={form.control}
-                                name="stock"
+                                name="item_stock"
                                 render={({ field, fieldState }) => (
                                   <FormItem>
                                     <FormLabel>Stock</FormLabel>
@@ -579,7 +593,7 @@ export default function Page({
                                             );
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("stock");
+                                            form.trigger("item_stock");
                                           }}
                                           className="h-10 w-10"
                                         >
@@ -598,11 +612,11 @@ export default function Page({
                                               : value;
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("stock");
+                                            form.trigger("item_stock");
                                           }}
                                           onBlur={() => {
                                             field.onBlur();
-                                            form.trigger("stock");
+                                            form.trigger("item_stock");
                                           }}
                                           aria-invalid={!!fieldState.error}
                                           className={`w-20 text-center ${
@@ -622,7 +636,7 @@ export default function Page({
                                             );
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("stock");
+                                            form.trigger("item_stock");
                                           }}
                                           className="h-10 w-10"
                                         >
@@ -636,7 +650,7 @@ export default function Page({
                               />
                               <FormField
                                 control={form.control}
-                                name="itemAvail"
+                                name="item_status"
                                 render={({ field }) => (
                                   <FormItem className="flex flex-col">
                                     <FormLabel>Availability</FormLabel>
