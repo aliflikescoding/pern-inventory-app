@@ -66,29 +66,30 @@ import { PenLine, Box, Layers3, Trash, Plus, Minus } from "lucide-react";
 
 // Form Schema
 const formSchema = z.object({
-  itemName: z
+  item_id: z.number().optional(), // Optional for new items, required for edits
+  item_name: z
     .string()
     .min(1, "Item name is required")
     .max(50, "Item name must be less than 50 characters"),
-  imageLink: z
+  item_image_link: z
     .string()
     .url("Must be a valid URL")
     .min(1, "Image link is required"),
-  itemDesc: z
+  item_desc: z
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description must be less than 500 characters"),
-  itemCategory: z.string().min(1, "Category is required"),
-  price: z
+  category_id: z.number(),
+  item_price: z
     .number()
     .min(0.01, "Price must be greater than 0")
     .max(999999.99, "Price must be less than 1,000,000"),
-  stock: z
+  item_stock: z
     .number()
     .int("Stock must be a whole number")
     .min(0, "Stock cannot be negative")
     .max(999999, "Stock must be less than 1,000,000"),
-  itemAvail: z.boolean(),
+  item_status: z.boolean(),
 });
 
 // Data interfaces
@@ -179,7 +180,7 @@ const processDataBar2 = (items: Item[]) => {
   }));
 };
 
-const getAvailabilitySummary = (items: typeof allItems) => {
+const getAvailabilitySummary = (items: Item[]) => {
   const summary = items.reduce(
     (acc, item) => {
       if (item.item_status) {
@@ -200,7 +201,7 @@ const Items = () => {
   // data states
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [allItems, setAllItems] = useState([]);
+  const [allItems, setAllItems] = useState<Item[]>([]);
   const dataPie = processDataPie(allItems);
   const barData1 = processDataBar1(allItems);
   const dataPieAvail = getAvailabilitySummary(allItems);
@@ -213,26 +214,28 @@ const Items = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      itemName: "",
-      imageLink: "",
-      itemDesc: "",
-      itemCategory: "",
-      price: 1,
-      stock: 1,
-      itemAvail: false,
+      item_id: undefined,
+      item_name: "",
+      item_image_link: "",
+      item_desc: "",
+      category_id: 0,
+      item_price: 1,
+      item_stock: 1,
+      item_status: false,
     },
   });
 
   // update forms with items
   const updateFormWithItem = (item: Item) => {
     form.reset({
-      itemName: item.item_name,
-      imageLink: item.item_image_link,
-      itemDesc: item.item_desc,
-      itemCategory: item.category_name,
-      price: item.item_price,
-      stock: item.item_stock,
-      itemAvail: item.item_status,
+      item_id: item.item_id,
+      item_name: item.item_name,
+      item_image_link: item.item_image_link,
+      item_desc: item.item_desc,
+      category_id: item.category_id,
+      item_price: item.item_price,
+      item_stock: item.item_stock,
+      item_status: item.item_status,
     });
   };
 
@@ -240,17 +243,29 @@ const Items = () => {
   // edit item
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Validate the form data
       const validatedData = formSchema.parse(values);
 
-      // Handle the form submission
-      console.log(validatedData);
+      const response = await fetch(
+        `api/editItem/${validatedData.item_id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(validatedData),
+        }
+      );
 
-      // Clear any previous errors
-      setFormError(null);
+      const data = await response.json();
 
-      // Reset form
-      form.reset();
+      if (response.ok) {
+        setFormError(null);
+        form.reset();
+        alert("Category created successfully!");
+        window.location.reload();
+      } else {
+        throw new Error(data.message || "Failed to create category");
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle Zod validation errors
@@ -468,7 +483,7 @@ const Items = () => {
 
                             <FormField
                               control={form.control}
-                              name="itemName"
+                              name="item_name"
                               render={({ field, fieldState }) => (
                                 <FormItem>
                                   <FormLabel>Name</FormLabel>
@@ -483,7 +498,7 @@ const Items = () => {
                                       onBlur={() => {
                                         field.onBlur();
                                         // Trigger validation on blur
-                                        form.trigger("itemName");
+                                        form.trigger("item_name");
                                       }}
                                     />
                                   </FormControl>
@@ -493,7 +508,7 @@ const Items = () => {
                             />
                             <FormField
                               control={form.control}
-                              name="imageLink"
+                              name="item_image_link"
                               render={({ field, fieldState }) => (
                                 <FormItem>
                                   <FormLabel>Image Link</FormLabel>
@@ -508,7 +523,7 @@ const Items = () => {
                                       onBlur={() => {
                                         field.onBlur();
                                         // Trigger validation on blur
-                                        form.trigger("imageLink");
+                                        form.trigger("item_image_link");
                                       }}
                                     />
                                   </FormControl>
@@ -518,7 +533,7 @@ const Items = () => {
                             />
                             <FormField
                               control={form.control}
-                              name="itemDesc"
+                              name="item_desc"
                               render={({ field, fieldState }) => (
                                 <FormItem>
                                   <FormLabel>Description</FormLabel>
@@ -532,7 +547,7 @@ const Items = () => {
                                       aria-invalid={!!fieldState.error}
                                       onBlur={() => {
                                         field.onBlur();
-                                        form.trigger("itemDesc");
+                                        form.trigger("item_desc");
                                       }}
                                     />
                                   </FormControl>
@@ -543,24 +558,32 @@ const Items = () => {
                             />
                             <FormField
                               control={form.control}
-                              name="itemCategory"
+                              name="category_id"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Category</FormLabel>
                                   <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
+                                    onValueChange={(value) =>
+                                      field.onChange(Number(value))
+                                    }
+                                    defaultValue={field.value?.toString()}
                                   >
                                     <FormControl>
                                       <SelectTrigger>
-                                        <SelectValue placeholder="Select a category" />
+                                        <SelectValue placeholder="Select a category">
+                                          {categories.find(
+                                            (cat) =>
+                                              cat.category_id === field.value
+                                          )?.category_name ||
+                                            "Select a category"}
+                                        </SelectValue>
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                       {categories.map((category) => (
                                         <SelectItem
                                           key={category.category_id}
-                                          value={category.category_name}
+                                          value={category.category_id.toString()}
                                         >
                                           {category.category_name}
                                         </SelectItem>
@@ -575,7 +598,7 @@ const Items = () => {
                             <div className="flex gap-3">
                               <FormField
                                 control={form.control}
-                                name="price"
+                                name="item_price"
                                 render={({ field, fieldState }) => (
                                   <FormItem>
                                     <FormLabel>Price</FormLabel>
@@ -592,7 +615,7 @@ const Items = () => {
                                             );
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("price");
+                                            form.trigger("item_price");
                                           }}
                                           className="h-10 w-10"
                                         >
@@ -611,11 +634,11 @@ const Items = () => {
                                               : value;
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("price");
+                                            form.trigger("item_price");
                                           }}
                                           onBlur={() => {
                                             field.onBlur();
-                                            form.trigger("price");
+                                            form.trigger("item_price");
                                           }}
                                           aria-invalid={!!fieldState.error}
                                           className={`w-20 text-center ${
@@ -635,7 +658,7 @@ const Items = () => {
                                             );
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("price");
+                                            form.trigger("item_price");
                                           }}
                                           className="h-10 w-10"
                                         >
@@ -650,7 +673,7 @@ const Items = () => {
 
                               <FormField
                                 control={form.control}
-                                name="stock"
+                                name="item_stock"
                                 render={({ field, fieldState }) => (
                                   <FormItem>
                                     <FormLabel>Stock</FormLabel>
@@ -667,7 +690,7 @@ const Items = () => {
                                             );
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("stock");
+                                            form.trigger("item_stock");
                                           }}
                                           className="h-10 w-10"
                                         >
@@ -686,11 +709,11 @@ const Items = () => {
                                               : value;
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("stock");
+                                            form.trigger("item_stock");
                                           }}
                                           onBlur={() => {
                                             field.onBlur();
-                                            form.trigger("stock");
+                                            form.trigger("item_stock");
                                           }}
                                           aria-invalid={!!fieldState.error}
                                           className={`w-20 text-center ${
@@ -710,7 +733,7 @@ const Items = () => {
                                             );
                                             field.onChange(newValue);
                                             // Trigger validation after changing value
-                                            form.trigger("stock");
+                                            form.trigger("item_stock");
                                           }}
                                           className="h-10 w-10"
                                         >
@@ -725,7 +748,7 @@ const Items = () => {
 
                               <FormField
                                 control={form.control}
-                                name="itemAvail"
+                                name="item_status"
                                 render={({ field }) => (
                                   <FormItem className="flex flex-col">
                                     <FormLabel>Availability</FormLabel>
