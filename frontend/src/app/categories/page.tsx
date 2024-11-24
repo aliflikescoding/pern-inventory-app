@@ -44,14 +44,15 @@ import { Input } from "@/components/ui/input";
 // custom components import
 import CategoryTotalCard from "@/components/category-total-card";
 // icon imports
-import { PenLine, Trash } from "lucide-react";
+import { PenLine, Trash, UndoIcon } from "lucide-react";
 // form schema
 const formSchema = z.object({
-  categoryName: z
+  category_id: z.number().optional(),
+  category_name: z
     .string()
     .min(1, "Category name is required")
     .max(50, "Category name must be less than 50 characters"),
-  imageLink: z
+  category_image_link: z
     .string()
     .url("Must be a valid URL")
     .min(1, "Image link is required"),
@@ -75,16 +76,18 @@ export default function Categories() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      categoryName: "",
-      imageLink: "",
+      category_id: 0,
+      category_name: "",
+      category_image_link: "",
     },
   });
 
   // set form to data
   const updateFormWithCategory = (category: Category) => {
     form.reset({
-      categoryName: category.category_name,
-      imageLink: category.category_image_link,
+      category_id: category.category_id,
+      category_name: category.category_name,
+      category_image_link: category.category_image_link,
     });
   };
 
@@ -95,14 +98,27 @@ export default function Categories() {
       // Validate the form data
       const validatedData = formSchema.parse(values);
 
-      // Handle the form submission
-      console.log(validatedData);
+      const response = await fetch(
+        `api/editCat/${validatedData.category_id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(validatedData),
+        }
+      );
 
-      // Clear any previous errors
-      setFormError(null);
+      const data = await response.json();
 
-      // Reset form
-      form.reset();
+      if (response.ok) {
+        setFormError(null);
+        form.reset();
+        alert("Item updated successfully!");
+        window.location.reload();
+      } else {
+        throw new Error(data.message || "Failed to update item");
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle Zod validation errors
@@ -238,7 +254,7 @@ export default function Categories() {
                         <form onSubmit={form.handleSubmit(onSubmit)}>
                           <FormField
                             control={form.control}
-                            name="categoryName"
+                            name="category_name"
                             render={({ field, fieldState }) => (
                               <FormItem>
                                 <FormLabel>Name</FormLabel>
@@ -253,7 +269,7 @@ export default function Categories() {
                                     onBlur={() => {
                                       field.onBlur();
                                       // Trigger validation on blur
-                                      form.trigger("categoryName");
+                                      form.trigger("category_name");
                                     }}
                                   />
                                 </FormControl>
@@ -263,7 +279,7 @@ export default function Categories() {
                           />
                           <FormField
                             control={form.control}
-                            name="imageLink"
+                            name="category_image_link"
                             render={({ field, fieldState }) => (
                               <FormItem>
                                 <FormLabel>Image Link</FormLabel>
@@ -278,7 +294,7 @@ export default function Categories() {
                                     onBlur={() => {
                                       field.onBlur();
                                       // Trigger validation on blur
-                                      form.trigger("imageLink");
+                                      form.trigger("category_image_link");
                                     }}
                                   />
                                 </FormControl>
