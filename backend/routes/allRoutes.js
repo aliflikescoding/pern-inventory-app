@@ -12,7 +12,8 @@ import {
   updateAnItem,
   deleteItem,
   getItemsBasedOnCategory,
-  getAllItemsWithCatName
+  getAllItemsWithCatName,
+  updateACategoryItem
 } from "../controllers/allControllers.js";
 
 // Create Category
@@ -50,5 +51,8 @@ router.delete("/items/:id", deleteItem);
 
 // Get items with name category
 router.get("/allitems", getAllItemsWithCatName);
+
+// Update category item
+router.put("/categories/:id/item", updateACategoryItem);
 
 export default router;

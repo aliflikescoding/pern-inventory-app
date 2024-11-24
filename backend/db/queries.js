@@ -113,6 +113,38 @@ export async function updateIdItem(
   return result;
 }
 
+export async function updateCategoryItem(
+  item_id,
+  item_name,
+  item_desc,
+  item_price,
+  item_stock,
+  item_status,
+  item_image_link,
+) {
+  const result = await pool.query(
+    `UPDATE item 
+     SET item_name = $1, 
+         item_desc = $2, 
+         item_price = $3, 
+         item_stock = $4, 
+         item_status = $5, 
+         item_image_link = $6
+     WHERE item_id = $7
+     RETURNING *`,
+    [
+      item_name,
+      item_desc,
+      item_price,
+      item_stock,
+      item_status,
+      item_image_link,
+      item_id,
+    ]
+  );
+  return result;
+}
+
 export async function deleteIdItem(item_id) {
   const result = await pool.query("DELETE FROM item WHERE item_id = $1", [
     item_id,

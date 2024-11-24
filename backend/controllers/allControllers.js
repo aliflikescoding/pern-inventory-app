@@ -10,7 +10,8 @@ import {
   updateIdItem,
   deleteIdItem,
   getCategoryItems,
-  getAllItemsWithNames
+  getAllItemsWithNames,
+  updateCategoryItem
 } from "../db/queries.js";
 
 // desc Post a category
@@ -150,6 +151,34 @@ export const updateAnItem = async (req, res, next) => {
       item_status,
       item_image_link,
       category_id
+    );
+    res.json("Item was updated!");
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// desc Update a category item
+// @route UPDATE /categories/:id/item
+export const updateACategoryItem = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      item_name,
+      item_desc,
+      item_price,
+      item_stock,
+      item_status,
+      item_image_link,
+    } = req.body;
+    await updateCategoryItem(
+      id,
+      item_name,
+      item_desc,
+      item_price,
+      item_stock,
+      item_status,
+      item_image_link,
     );
     res.json("Item was updated!");
   } catch (err) {
