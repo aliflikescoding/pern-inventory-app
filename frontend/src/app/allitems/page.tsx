@@ -831,10 +831,6 @@ const Items = () => {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <form
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            onDeleteSubmit(item.item_id);
-                          }}
                         >
                           <AlertDialogHeader>
                             <AlertDialogTitle>

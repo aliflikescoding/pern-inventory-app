@@ -188,10 +188,20 @@ export default function Page({
 
   // ASYNC FUNCTIONS
   // delete item function
-  async function onDeleteSubmit(id: number) {
+  async function onDeleteSubmit(id: number, password: string) {
     try {
+      const isValidPassword = await verifyPassword(password);
+      if (!isValidPassword) {
+        alert("Incorrect password");
+        return;
+      }
+
       const response = await fetch(`/api/deleteItem/${id}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password }),
       });
 
       const data = await response.json();
@@ -205,7 +215,7 @@ export default function Page({
       }
     } catch (err) {
       console.error("An error occurred while deleting the item:", err);
-      alert("Failed to delete the category. Please try again.");
+      alert("Failed to delete the item. Please try again.");
     }
   }
 
@@ -726,12 +736,7 @@ export default function Page({
                         <Trash className="transition-transform text-destructive transform hover:scale-95 ml-2" />
                       </AlertDialogTrigger>
                       <AlertDialogContent>
-                        <form
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            onDeleteSubmit(item.item_id);
-                          }}
-                        >
+                        <form>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
                               Are you absolutely sure you want to delete{" "}
@@ -741,16 +746,34 @@ export default function Page({
                               ?
                             </AlertDialogTitle>
                             <AlertDialogDescription>
-                              This action cannot be undone. This will
-                              permanently delete {item.item_name} and remove
-                              your data from our servers.
+                              <p>
+                                This action cannot be undone. This will
+                                permanently delete {item.item_name} and remove
+                                your data from our servers.
+                              </p>
+                              <div className="mt-4">
+                                <Input
+                                  type="password"
+                                  placeholder="Enter admin password"
+                                  id={`delete-password-${item.item_id}`}
+                                  className="mb-4"
+                                />
+                              </div>
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              className="bg-destructive hover:bg-chart-3"
-                              type="submit"
+                              onClick={() => {
+                                const passwordInput = document.getElementById(
+                                  `delete-password-${item.item_id}`
+                                ) as HTMLInputElement;
+                                onDeleteSubmit(
+                                  item.item_id,
+                                  passwordInput.value
+                                );
+                              }}
+                              className="bg-red-500 hover:bg-red-600"
                             >
                               Continue
                             </AlertDialogAction>
