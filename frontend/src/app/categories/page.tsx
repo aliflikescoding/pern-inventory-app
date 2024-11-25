@@ -395,7 +395,7 @@ export default function Categories() {
                             ?
                           </AlertDialogTitle>
                           <AlertDialogDescription>
-                            <p className="text-xl my-2">
+                            <p className="text-lg my-2">
                               This action cannot be undone. This will
                               permanently delete {category.category_name} and
                               all of {category.category_name}&apos;s items.
