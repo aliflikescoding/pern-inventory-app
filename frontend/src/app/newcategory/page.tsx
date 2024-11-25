@@ -31,7 +31,21 @@ const formSchema = z.object({
     .string()
     .url("Must be a valid URL")
     .min(1, "Image link is required"),
+  password: z.string().min(1, "Password is required"),
 });
+
+const verifyPassword = async (inputPassword: string) => {
+  const response = await fetch("/api/verifyPassword", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password: inputPassword }),
+  });
+
+  const data = await response.json();
+  return data.isValid;
+};
 
 const NewCategory = () => {
   // form error state
@@ -45,6 +59,7 @@ const NewCategory = () => {
     defaultValues: {
       category_name: "",
       category_image_link: "",
+      password: "",
     },
   });
 
@@ -54,6 +69,12 @@ const NewCategory = () => {
     setIsSubmitting(true);
     try {
       const validatedData = formSchema.parse(values);
+
+      const isValidPassword = await verifyPassword(validatedData.password);
+      if (!isValidPassword) {
+        setFormError("Incorrect password");
+        return;
+      }
 
       const response = await fetch("/api/newCategory", {
         method: "POST",
@@ -108,6 +129,24 @@ const NewCategory = () => {
                   {form.formState.errors.root.message}
                 </div>
               )}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel>Admin Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Enter admin password"
+                        {...field}
+                        className={fieldState.error ? "border-red-500" : ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="category_name"
