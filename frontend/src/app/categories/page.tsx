@@ -44,7 +44,7 @@ import { Input } from "@/components/ui/input";
 // custom components import
 import CategoryTotalCard from "@/components/category-total-card";
 // icon imports
-import { PenLine, Trash, UndoIcon } from "lucide-react";
+import { PenLine, Trash } from "lucide-react";
 // form schema
 const formSchema = z.object({
   category_id: z.number().optional(),
@@ -56,6 +56,7 @@ const formSchema = z.object({
     .string()
     .url("Must be a valid URL")
     .min(1, "Image link is required"),
+  password: z.string().min(1, "Password is required"),
 });
 
 // category interface
@@ -64,6 +65,20 @@ interface Category {
   category_name: string;
   category_image_link: string;
 }
+
+// verify password logic
+const verifyPassword = async (inputPassword: string) => {
+  const response = await fetch("/api/verifyPassword", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password: inputPassword }),
+  });
+
+  const data = await response.json();
+  return data.isValid;
+};
 
 export default function Categories() {
   // form error state
@@ -79,6 +94,7 @@ export default function Categories() {
       category_id: 0,
       category_name: "",
       category_image_link: "",
+      password: "",
     },
   });
 
@@ -88,6 +104,7 @@ export default function Categories() {
       category_id: category.category_id,
       category_name: category.category_name,
       category_image_link: category.category_image_link,
+      password: "",
     });
   };
 
@@ -98,16 +115,19 @@ export default function Categories() {
       // Validate the form data
       const validatedData = formSchema.parse(values);
 
-      const response = await fetch(
-        `api/editCat/${validatedData.category_id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(validatedData),
-        }
-      );
+      const isValidPassword = await verifyPassword(validatedData.password);
+      if (!isValidPassword) {
+        setFormError("Incorrect password");
+        return;
+      }  
+
+      const response = await fetch(`api/editCat/${validatedData.category_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(validatedData),
+      });
 
       const data = await response.json();
 
@@ -252,6 +272,26 @@ export default function Categories() {
                       </DialogHeader>
                       <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)}>
+                          <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field, fieldState }) => (
+                              <FormItem>
+                                <FormLabel>Admin Password</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="password"
+                                    placeholder="Enter admin password"
+                                    {...field}
+                                    className={
+                                      fieldState.error ? "border-red-500" : ""
+                                    }
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                           <FormField
                             control={form.control}
                             name="category_name"
