@@ -36,6 +36,20 @@ interface Category {
   category_image_link: string;
 }
 
+// verify password logic
+const verifyPassword = async (inputPassword: string) => {
+  const response = await fetch("/api/verifyPassword", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password: inputPassword }),
+  });
+
+  const data = await response.json();
+  return data.isValid;
+};
+
 // form schema
 const formSchema = z.object({
   item_name: z
@@ -61,6 +75,7 @@ const formSchema = z.object({
     .min(0, "item_stock cannot be negative")
     .max(999999, "item_stock must be less than 1,000,000"),
   item_status: z.boolean(),
+  password: z.string().min(1, "Password is required"),
 });
 
 const NewItem = () => {
@@ -80,6 +95,7 @@ const NewItem = () => {
       item_price: 1,
       item_stock: 1,
       item_status: false,
+      password: "",
     },
   });
 
@@ -89,6 +105,12 @@ const NewItem = () => {
     try {
       // Validate the form data
       const validatedData = formSchema.parse(values);
+
+      const isValidPassword = await verifyPassword(validatedData.password);
+      if (!isValidPassword) {
+        setFormError("Incorrect password");
+        return;
+      }
 
       // Handle the form submission
       const response = await fetch("/api/newItem", {
@@ -165,6 +187,24 @@ const NewItem = () => {
                   {form.formState.errors.root.message}
                 </div>
               )}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel>Admin Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Enter admin password"
+                        {...field}
+                        className={fieldState.error ? "border-red-500" : ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
