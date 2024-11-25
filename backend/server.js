@@ -4,6 +4,7 @@ import logger from "morgan";
 import cors from "cors";
 import { fileURLToPath } from "url";
 import allRoutes from "./routes/allRoutes.js";
+import rateLimit from 'express-rate-limit';
 
 const port = process.env.PORT || 5000;
 const app = express();
@@ -24,6 +25,14 @@ app.use(logger('dev'));
 
 // Setup static folder
 app.use(express.static(path.join(__dirname, "public")));
+
+// rate limiter
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 15 * 60 * 1000,
+  message: "Too many requests, please try again after 15 minutes.",
+});
+app.use(limiter);
 
 // routes
 app.use(allRoutes);
