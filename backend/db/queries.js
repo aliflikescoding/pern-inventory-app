@@ -34,10 +34,18 @@ export async function updateIdACategory(
 }
 
 export async function deleteIdCategory(category_id) {
+  // First delete items with this category_id
+  await pool.query(
+    "DELETE FROM item WHERE category_id = $1",
+    [category_id]
+  );
+  
+  // Then delete the category itself
   const result = await pool.query(
     "DELETE FROM category WHERE category_id = $1",
     [category_id]
   );
+  
   return result;
 }
 
