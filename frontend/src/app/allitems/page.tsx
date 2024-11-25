@@ -90,6 +90,7 @@ const formSchema = z.object({
     .min(0, "Stock cannot be negative")
     .max(999999, "Stock must be less than 1,000,000"),
   item_status: z.boolean(),
+  password: z.string().min(1, "Password is required"),
 });
 
 // Data interfaces
@@ -116,6 +117,19 @@ interface Category {
   category_name: string;
   category_image_link: string;
 }
+
+const verifyPassword = async (inputPassword: string) => {
+  const response = await fetch("/api/verifyPassword", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password: inputPassword }),
+  });
+
+  const data = await response.json();
+  return data.isValid;
+};
 
 // Data processing functions
 const processDataPie = (items: Item[]): ProcessedItem[] => {
@@ -222,6 +236,7 @@ const Items = () => {
       item_price: 1,
       item_stock: 1,
       item_status: false,
+      password: "",
     },
   });
 
@@ -236,6 +251,7 @@ const Items = () => {
       item_price: item.item_price,
       item_stock: item.item_stock,
       item_status: item.item_status,
+      password: "",
     });
   };
 
@@ -245,16 +261,19 @@ const Items = () => {
     try {
       const validatedData = formSchema.parse(values);
 
-      const response = await fetch(
-        `api/editItem/${validatedData.item_id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(validatedData),
-        }
-      );
+      const isValidPassword = await verifyPassword(validatedData.password);
+      if (!isValidPassword) {
+        setFormError("Incorrect password");
+        return;
+      }
+
+      const response = await fetch(`api/editItem/${validatedData.item_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(validatedData),
+      });
 
       const data = await response.json();
 
@@ -480,7 +499,26 @@ const Items = () => {
                                 {form.formState.errors.root.message}
                               </div>
                             )}
-
+                            <FormField
+                              control={form.control}
+                              name="password"
+                              render={({ field, fieldState }) => (
+                                <FormItem>
+                                  <FormLabel>Admin Password</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="password"
+                                      placeholder="Enter admin password"
+                                      {...field}
+                                      className={
+                                        fieldState.error ? "border-red-500" : ""
+                                      }
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                             <FormField
                               control={form.control}
                               name="item_name"

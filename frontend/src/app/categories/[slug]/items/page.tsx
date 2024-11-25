@@ -75,6 +75,7 @@ const formSchema = z.object({
     .min(0, "Stock cannot be negative")
     .max(999999, "Stock must be less than 1,000,000"),
   item_status: z.boolean(),
+  password: z.string().min(1, "Password is required"),
 });
 
 // items typscript interface
@@ -95,6 +96,20 @@ interface Category {
   category_name: string;
   category_image_link: string;
 }
+
+// verify password logic
+const verifyPassword = async (inputPassword: string) => {
+  const response = await fetch("/api/verifyPassword", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password: inputPassword }),
+  });
+
+  const data = await response.json();
+  return data.isValid;
+};
 
 // chart data processing functions
 const processDataBar1 = (items: Item[]) => {
@@ -144,6 +159,7 @@ export default function Page({
       item_price: 1,
       item_stock: 1,
       item_status: false,
+      password: "",
     },
   });
   // update the form with the current items
@@ -156,6 +172,7 @@ export default function Page({
       item_price: item.item_price,
       item_stock: item.item_stock,
       item_status: item.item_status,
+      password: "",
     });
   };
   // states
@@ -197,6 +214,12 @@ export default function Page({
     try {
       // Validate the form data
       const validatedData = formSchema.parse(values);
+
+      const isValidPassword = await verifyPassword(validatedData.password);
+      if (!isValidPassword) {
+        setFormError("Incorrect password");
+        return;
+      }
 
       const response = await fetch(
         `/api/editCatItem/${validatedData.item_id}`, // Remove the leading 'api/' as it's already in the correct path
@@ -423,6 +446,26 @@ export default function Page({
                                 {form.formState.errors.root.message}
                               </div>
                             )}
+                            <FormField
+                              control={form.control}
+                              name="password"
+                              render={({ field, fieldState }) => (
+                                <FormItem>
+                                  <FormLabel>Admin Password</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="password"
+                                      placeholder="Enter admin password"
+                                      {...field}
+                                      className={
+                                        fieldState.error ? "border-red-500" : ""
+                                      }
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                             <FormField
                               control={form.control}
                               name="item_name"
