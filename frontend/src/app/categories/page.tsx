@@ -119,7 +119,7 @@ export default function Categories() {
       if (!isValidPassword) {
         setFormError("Incorrect password");
         return;
-      }  
+      }
 
       const response = await fetch(`api/editCat/${validatedData.category_id}`, {
         method: "PUT",
@@ -152,10 +152,20 @@ export default function Categories() {
   }
 
   // delete form
-  async function onDeleteSubmit(id: number) {
+  async function onDeleteSubmit(id: number, password: string) {
     try {
+      const isValidPassword = await verifyPassword(password);
+      if (!isValidPassword) {
+        alert("Incorrect password");
+        return;
+      }
+
       const response = await fetch(`/api/deleteCategory/${id}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password }),
       });
 
       const data = await response.json();
@@ -367,7 +377,13 @@ export default function Categories() {
                       <form
                         onSubmit={(e) => {
                           e.preventDefault();
-                          onDeleteSubmit(category.category_id);
+                          const passwordInput = e.currentTarget.querySelector(
+                            'input[name="delete-password"]'
+                          ) as HTMLInputElement;
+                          onDeleteSubmit(
+                            category.category_id,
+                            passwordInput.value
+                          );
                         }}
                       >
                         <AlertDialogHeader>
@@ -382,8 +398,15 @@ export default function Categories() {
                             <p className="text-xl my-2">
                               This action cannot be undone. This will
                               permanently delete {category.category_name} and
-                              all of {category.category_name}&apos; items.
+                              all of {category.category_name}&apos;s items.
                             </p>
+                            <Input
+                              type="password"
+                              name="delete-password"
+                              placeholder="Enter admin password"
+                              className="mt-4"
+                              required
+                            />
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
