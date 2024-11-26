@@ -10,7 +10,7 @@ const port = process.env.PORT || 5000;
 const app = express();
 
 // Enable CORS for all routes
-app.use(cors());
+app.use(cors({ origin: 'https://pern-inventory-kws9ns0rg-aliflikescodings-projects.vercel.app/' }));
 
 // Get the directory name
 const __filename = fileURLToPath(import.meta.url);
